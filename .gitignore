@@ -1,0 +1,32 @@
+
+# Credenciales y variables de entorno
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Terraform: archivos locales y estado
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Variables que puedan contener secretos
+*.tfvars
+*.tfvars.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Archivos temporales
+*.log
+.DS_Store
+.vscode/
