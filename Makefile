@@ -1,93 +1,137 @@
 
-# PRACTICA 2 - AUTOMATIZACION CON TERRAFORM
-# Todos los comandos se ejecutan desde la raiz del proyecto.
+# PRACTICA 2 - REDES AVANZADAS
+# Automatizacion de despliegue, validacion y pruebas con Terraform.
+# Ejecutar todos los comandos desde la raiz del proyecto.
+#
+# NOTA: Las recetas de Makefile deben comenzar con TABULACIONES.
 
 .PHONY: help fmt init-dev init-prod validate-dev validate-prod
-.PHONY: plan-dev plan-prod up-dev up-prod status-dev status-prod
-.PHONY: check-dev check-prod down-dev down-prod
+.PHONY: plan-dev plan-prod up-dev up-prod up-all
+.PHONY: status status-dev status-prod
+.PHONY: check check-dev check-prod
+.PHONY: balance-dev balance-prod demo
+.PHONY: logs-dev logs-prod down-dev down-prod
 
-# Menu de ayuda.
+# MENU PRINCIPAL
 help:
-	@echo "======================================"
-	@echo " PRACTICA 2 - TERRAFORM Y DOCKER"
-	@echo "======================================"
-	@echo "make fmt           Formatear Terraform"
-	@echo "make init-dev      Inicializar DEV"
-	@echo "make init-prod     Inicializar PROD"
-	@echo "make validate-dev  Validar DEV"
-	@echo "make validate-prod Validar PROD"
-	@echo "make plan-dev      Comprobar plan DEV"
-	@echo "make plan-prod     Comprobar plan PROD"
-	@echo "make up-dev        Desplegar DEV"
-	@echo "make up-prod       Desplegar PROD"
-	@echo "make status-dev    Estado de DEV"
-	@echo "make status-prod   Estado de PROD"
-	@echo "make check-dev     Comprobar Flask DEV"
-	@echo "make check-prod    Comprobar Flask PROD"
-	@echo "make down-dev      Destruir DEV"
-	@echo "make down-prod     Destruir PROD"
+	@echo "=============================================="
+	@echo " PRACTICA 2 - TERRAFORM + DOCKER"
+	@echo "=============================================="
+	@echo "make init-dev       Inicializar Terraform DEV"
+	@echo "make init-prod      Inicializar Terraform PROD"
+	@echo "make fmt            Formatear archivos Terraform"
+	@echo "make validate-dev   Validar DEV"
+	@echo "make validate-prod  Validar PROD"
+	@echo "make plan-dev       Ver cambios de DEV"
+	@echo "make plan-prod      Ver cambios de PROD"
+	@echo "make up-dev         Desplegar DEV"
+	@echo "make up-prod        Desplegar PROD"
+	@echo "make up-all         Desplegar ambos entornos"
+	@echo "make status         Mostrar todos los contenedores"
+	@echo "make status-dev     Ver estado DEV"
+	@echo "make status-prod    Ver estado PROD"
+	@echo "make check          Verificar DEV y PROD"
+	@echo "make check-dev      Verificar servicios de DEV"
+	@echo "make check-prod     Verificar servicios de PROD"
+	@echo "make balance-dev    Demostrar Round Robin DEV"
+	@echo "make balance-prod   Demostrar Round Robin PROD"
+	@echo "make demo           Ejecutar pruebas de demostracion"
+	@echo "make logs-dev       Consultar logs Nginx DEV"
+	@echo "make logs-prod      Consultar logs Nginx PROD"
+	@echo "make down-dev       Destruir DEV (datos protegidos)"
+	@echo "make down-prod      Destruir PROD (datos protegidos)"
 
-# Formatea los archivos Terraform.
+# FORMATO E INICIALIZACION
 fmt:
 	terraform fmt -recursive
 
-# Inicializa los proveedores y modulos.
 init-dev:
 	terraform -chdir=environments/dev init
 
 init-prod:
 	terraform -chdir=environments/prod init
 
-# Valida cada entorno.
+# VALIDACION
 validate-dev:
 	terraform -chdir=environments/dev validate
 
 validate-prod:
 	terraform -chdir=environments/prod validate
 
-# Muestra los cambios antes de aplicarlos.
+# PLANIFICACION
 plan-dev:
 	terraform -chdir=environments/dev plan
 
 plan-prod:
 	terraform -chdir=environments/prod plan
 
-# Despliega los recursos con Terraform.
+# DESPLIEGUE
 up-dev:
 	terraform -chdir=environments/dev apply
 
 up-prod:
 	terraform -chdir=environments/prod apply
 
-# Consulta las salidas y los contenedores Docker.
+up-all: up-dev up-prod
+
+# ESTADO DE CONTENEDORES
+status:
+	docker ps -a --filter "name=practica2"
+
 status-dev:
 	terraform -chdir=environments/dev output
-	docker ps -a --filter name=practica2-dev
+	docker ps -a --filter "name=practica2-dev"
 
 status-prod:
 	terraform -chdir=environments/prod output
-	docker ps -a --filter name=practica2-prod
+	docker ps -a --filter "name=practica2-prod"
 
-# Comprueba las instancias web de desarrollo.
+# COMPROBACIONES A TRAVES DE NGINX
 check-dev:
-	curl -fsS http://localhost:5101/status
-	@echo ""
-	curl -fsS http://localhost:5102/status
+	@echo "=== DEV - Nginx puerto 8100 ==="
+	curl -fsS http://localhost:8100/status
 	@echo ""
 
-# Comprueba las instancias web de produccion.
 check-prod:
-	curl -fsS http://localhost:5201/status
-	@echo ""
-	curl -fsS http://localhost:5202/status
-	@echo ""
-	curl -fsS http://localhost:5203/status
+	@echo "=== PROD - Nginx puerto 8200 ==="
+	curl -fsS http://localhost:8200/status
 	@echo ""
 
-# Destruccion controlada.
-# El volumen de MySQL esta protegido con prevent_destroy,
-# por lo que un destroy completo no se ejecutara sin
-# revisar primero esa proteccion y los datos guardados.
+check: check-dev check-prod
+
+# PRUEBAS DE BALANCEO ROUND ROBIN
+# Identifica la replica que ha respondido a cada solicitud.
+balance-dev:
+	@echo "=== ROUND ROBIN DEV - 10 PETICIONES ==="
+	@for i in $$(seq 1 10); do \
+		curl -fsS http://localhost:8100/status | \
+		python3 -c 'import json,sys; print(json.load(sys.stdin)["instance"])' || exit 1; \
+	done
+
+balance-prod:
+	@echo "=== ROUND ROBIN PROD - 12 PETICIONES ==="
+	@for i in $$(seq 1 12); do \
+		curl -fsS http://localhost:8200/status | \
+		python3 -c 'import json,sys; print(json.load(sys.stdin)["instance"])' || exit 1; \
+	done
+
+# DEMOSTRACION SIN PARAR NINGUN CONTENEDOR
+demo: status check balance-dev balance-prod
+	@echo "=============================================="
+	@echo " Demostracion automatica completada"
+	@echo "=============================================="
+
+# LOGS DE LOS BALANCEADORES
+logs-dev:
+	docker logs --tail 50 practica2-dev-nginx
+
+logs-prod:
+	docker logs --tail 50 practica2-prod-nginx
+
+# DESTRUCCION CONTROLADA
+# El volumen MySQL utiliza prevent_destroy.
+# Terraform impedira destruirlo sin revisar esa proteccion.
+# No utilizar estas opciones durante la demostracion.
 down-dev:
 	terraform -chdir=environments/dev destroy
 
