@@ -1,12 +1,20 @@
-# Nombre del entorno de despliegue.
+
+# Variables del entorno Terraform.
+
+# Nombre del entorno.
 variable "environment" {
-  description = "Nombre del entorno"
+  description = "Entorno de despliegue: dev o prod"
   type        = string
+
+  validation {
+    condition     = contains(["dev", "prod"], var.environment)
+    error_message = "El entorno debe ser dev o prod."
+  }
 }
 
-# Numero de instancias de la aplicacion web.
+# Numero de instancias Flask.
 variable "web_replicas" {
-  description = "Numero de replicas web"
+  description = "Cantidad de instancias web del entorno"
   type        = number
 
   validation {

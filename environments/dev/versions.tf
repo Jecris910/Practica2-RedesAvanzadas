@@ -1,15 +1,25 @@
-# Version de Terraform y proveedor Docker.
-# Fijamos la version del proveedor para reproducir el entorno.
+
+# Version de Terraform y proveedores necesarios.
+# Utilizamos versiones concretas para reproducibilidad.
+
 terraform {
   required_version = ">= 1.17.0"
 
   required_providers {
+
+    # Proveedor Docker para redes, imagenes y contenedores.
     docker = {
       source  = "kreuzwerker/docker"
       version = "4.6.0"
     }
+
+    # Generacion automatica de credenciales.
+    random = {
+      source  = "hashicorp/random"
+      version = "3.9.1"
+    }
   }
 }
 
-# Docker se ejecuta localmente en Ubuntu.
+# Conexion a Docker instalado en Ubuntu.
 provider "docker" {}
