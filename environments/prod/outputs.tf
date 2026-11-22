@@ -42,3 +42,14 @@ output "flask_container_names" {
   description = "Instancias de la aplicacion web"
   value       = module.web.container_names
 }
+
+# Informacion del balanceador Nginx.
+output "nginx_container_name" {
+  description = "Nombre del balanceador"
+  value       = module.loadbalancer.container_name
+}
+
+output "nginx_port" {
+  description = "Puerto del balanceador"
+  value       = module.loadbalancer.external_port
+}
