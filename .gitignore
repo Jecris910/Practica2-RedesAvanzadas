@@ -1,32 +1,42 @@
 
-# Credenciales y variables de entorno
+# PRACTICA 2 - ARCHIVOS QUE NO SE SUBEN A GITHUB
+
+# Credenciales y configuraciones privadas.
 .env
 .env.*
 **/.env
 **/.env.*
 
-# Terraform: archivos locales y estado
+# Estado de Terraform y archivos locales.
 **/.terraform/
 *.tfstate
 *.tfstate.*
 *.tfplan
 crash.log
 crash.*.log
+
+# Variables que pueden contener secretos.
+*.tfvars
+*.tfvars.json
+
+# Sobrescrituras locales de Terraform.
 override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
 
-# Variables que puedan contener secretos
-*.tfvars
-*.tfvars.json
-
-# Python
+# Python.
 __pycache__/
 *.pyc
 .venv/
 
-# Archivos temporales
+# Archivos temporales.
+*.swp
+*.swo
 *.log
 .DS_Store
 .vscode/
+
+# Archivos comprimidos.
+*.rar
+*.zip
