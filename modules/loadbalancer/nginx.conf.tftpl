@@ -1,0 +1,40 @@
+
+# BALANCEADOR DE CARGA - PRACTICA 2
+# Politica: Round Robin (por defecto en Nginx).
+
+upstream flask_backend {
+
+    # Comparte el estado de los servidores entre workers.
+    zone flask_backend 64k;
+
+    # DNS interno de Docker.
+    # Permite actualizar las IP cuando se recrean contenedores.
+    resolver 127.0.0.11 valid=5s ipv6=off;
+
+${upstream_servers}
+}
+
+server {
+    listen 80;
+    server_name _;
+
+    # Las solicitudes se distribuyen entre las replicas Flask.
+    location / {
+        proxy_pass http://flask_backend;
+
+        # Conserva la informacion HTTP del cliente.
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Evita esperar demasiado a un servidor caido.
+        proxy_connect_timeout 2s;
+        proxy_read_timeout 15s;
+        proxy_send_timeout 15s;
+
+        # Reintenta errores en otras replicas.
+        proxy_next_upstream error timeout http_502 http_503 http_504;
+        proxy_next_upstream_tries 3;
+    }
+}
