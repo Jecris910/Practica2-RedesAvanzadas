@@ -1,7 +1,9 @@
+# ENTORNO DE PRODUCCION
+# Reutilizamos el mismo modulo de red que DEV,
+# pero asignamos un nombre diferente.
 
-# Modulo raiz de desarrollo.
-#
-# Los recursos de infraestructura se incorporaran
-# progresivamente utilizando modulos reutilizables.
-#
-# No desplegamos contenedores en esta primera fase.
+module "network" {
+  source = "../../modules/network"
+
+  network_name = "practica2-prod-network"
+}

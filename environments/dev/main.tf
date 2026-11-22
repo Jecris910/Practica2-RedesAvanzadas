@@ -1,7 +1,9 @@
+# ENTORNO DE DESARROLLO
+# Utilizamos el modulo compartido para crear
+# una red Docker independiente para DEV.
 
-# Modulo raiz de desarrollo.
-#
-# Los recursos de infraestructura se incorporaran
-# progresivamente utilizando modulos reutilizables.
-#
-# No desplegamos contenedores en esta primera fase.
+module "network" {
+  source = "../../modules/network"
+
+  network_name = "practica2-dev-network"
+}
