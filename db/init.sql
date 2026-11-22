@@ -1,4 +1,4 @@
-USE practica1;
+USE practica2;
 
 CREATE TABLE IF NOT EXISTS teams (
     id INT AUTO_INCREMENT PRIMARY KEY,

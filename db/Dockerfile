@@ -1,3 +1,7 @@
-FROM mysql:5.7
 
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD mysqladmin ping -h localhost -u root -p"$MYSQL_ROOT_PASSWORD" || exit 1
+# MySQL independiente de la Practica 2.
+# La imagen incluye los datos iniciales de Inazuma Eleven.
+FROM mysql:8.4
+
+# Se ejecuta al crear una base de datos nueva.
+COPY init.sql /docker-entrypoint-initdb.d/01-init.sql
