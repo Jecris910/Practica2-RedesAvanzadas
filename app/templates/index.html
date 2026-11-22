@@ -237,12 +237,13 @@
     <div class="status-container">
         <div class="status-card">
             <h3>Entorno</h3>
-            <span id="environment">Comprobando...</span>
+            <!-- Datos de la instancia que ha generado esta pagina. -->
+            <span id="environment">{{ environment }}</span>
         </div>
 
         <div class="status-card">
             <h3>Instancia Flask</h3>
-            <span id="instance-id">Comprobando...</span>
+            <span id="instance-id">{{ instance_id }}</span>
         </div>
     </div>
 
@@ -446,33 +447,35 @@ function statusClass(value) {
     return "not-configured";
 }
 
+
 /* CONSULTAR ESTADO DE FLASK, MYSQL Y REDIS */
 
 function loadStatus() {
     fetch("/status")
         .then(response => response.json())
         .then(data => {
+            // Actualiza el estado de los tres servicios.
             ["web", "database", "cache"].forEach(service => {
                 const element = document.getElementById(service);
+
                 element.textContent = data[service];
                 element.className = statusClass(data[service]);
             });
 
-            // Identificacion para demostrar las replicas.
-            document.getElementById("environment").textContent =
-                data.environment || "Desconocido";
-
-            document.getElementById("instance-id").textContent =
-                data.instance || "Desconocida";
+            // No modificamos environment ni instance-id.
+            // Flask los introduce directamente en el HTML.
         })
         .catch(() => {
+            // Si falla la peticion, mostramos el error.
             ["web", "database", "cache"].forEach(service => {
                 const element = document.getElementById(service);
+
                 element.textContent = "disconnected";
                 element.className = "disconnected";
             });
         });
 }
+
 
 /* CONSULTAR EQUIPOS Y DEMOSTRAR REDIS */
 

@@ -67,10 +67,14 @@ def check_cache():
         return "disconnected"
 
 
-# Pagina principal de Inazuma Eleven.
+# Pagina principal con el identificador real de la instancia.
 @app.route("/")
 def home():
-    return render_template("index.html")
+    return render_template(
+        "index.html",
+        environment=os.getenv("APP_ENV", "unknown"),
+        instance_id=os.getenv("INSTANCE_ID", "unknown")
+    )
 
 
 # Estado de la aplicacion y de sus servicios.

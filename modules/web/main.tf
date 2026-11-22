@@ -46,14 +46,4 @@ resource "docker_container" "flask" {
   networks_advanced {
     name = var.network_name
   }
-
-  # Puertos individuales para comprobar el punto 1.
-  # En el punto 2 accederemos a traves del balanceador.
-  ports {
-    internal = 5000
-    external = var.base_port + count.index
-    ip       = "127.0.0.1"
-  }
-
-  # La aplicacion ya incluye healthcheck en su Dockerfile.
 }
