@@ -1,11 +1,14 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inazuma Eleven Multi-environment Deployment</title>
+
+    <title>Inazuma Eleven - Practica 2</title>
 
     <style>
+        /* ESTILOS GENERALES */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -30,6 +33,7 @@
             margin-top: 35px;
         }
 
+        /* ESTADO DE LOS SERVICIOS */
         .status-container {
             display: flex;
             gap: 20px;
@@ -62,6 +66,42 @@
             font-weight: bold;
         }
 
+        /* METRICAS DE CACHE */
+        .performance-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .performance-card {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.10);
+        }
+
+        .performance-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 15px;
+        }
+
+        .performance-card span {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .cache-hit {
+            color: #16803a;
+        }
+
+        .cache-miss {
+            color: #b45309;
+        }
+
+        /* FILTROS */
         .controls {
             margin: 20px 0;
         }
@@ -73,9 +113,11 @@
             min-width: 250px;
         }
 
+        /* TARJETAS DE JUGADORES */
         .players-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(210px, 240px));
+            grid-template-columns:
+                repeat(auto-fit, minmax(210px, 240px));
             gap: 18px;
             justify-content: center;
         }
@@ -85,7 +127,7 @@
             border-radius: 12px;
             overflow: hidden;
             border: 1px solid #ddd;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
             min-height: 340px;
         }
 
@@ -110,7 +152,7 @@
         }
 
         .player-info h3 {
-            margin: 0 0 8px 0;
+            margin: 0 0 8px;
             font-size: 18px;
         }
 
@@ -125,6 +167,26 @@
             border-top: 2px solid currentColor;
         }
 
+        .player-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .player-header-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .team-logo {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        /* TABLA DE EQUIPOS */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -132,8 +194,7 @@
             margin-bottom: 40px;
         }
 
-        th,
-        td {
+        th, td {
             padding: 10px;
             border: 1px solid #ddd;
             text-align: left;
@@ -143,167 +204,125 @@
             background: #eee;
         }
 
+        #teams tr {
+            transition: transform 0.15s ease,
+                        box-shadow 0.15s ease;
+        }
+
+        #teams tr:hover {
+            transform: scale(1.01);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
         .empty-message {
             background: white;
             padding: 20px;
             border-radius: 8px;
         }
-    
-.player-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.player-header-text {
-    flex: 1;
-    min-width: 0;
-}
-
-.player-header-text h3 {
-    margin-top: 0;
-}
-
-.team-logo {
-    width: 60px;
-    height: 60px;
-    object-fit: contain;
-    flex-shrink: 0;
-}
-
-
-#teams tr {
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-#teams tr:hover {
-    transform: scale(1.01);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-#teams td {
-    font-weight: 500;
-}
-
-
-.performance-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 16px;
-    margin-bottom: 30px;
-}
-
-.performance-card {
-    background: #ffffff;
-    border: 2px solid #dddddd;
-    border-radius: 10px;
-    padding: 16px;
-    text-align: center;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.10);
-}
-
-.performance-card h3 {
-    margin: 0 0 8px 0;
-    font-size: 15px;
-}
-
-.performance-card span {
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.cache-hit {
-    color: #16803a;
-}
-
-.cache-miss {
-    color: #b45309;
-}
-
-</style>
+    </style>
 </head>
 
 <body>
 
 <header>
-    <h1>Inazuma Eleven Multi-environment Deployment</h1>
-    <p>Docker web, database and cache environment</p>
+    <h1>Inazuma Eleven - Practica 2</h1>
+    <p>Infraestructura como codigo con Terraform y Docker</p>
 </header>
 
 <main>
 
-    <h2>Service status</h2>
+    <!-- INSTANCIA WEB -->
+    <h2>Instancia de la aplicacion</h2>
+
+    <div class="status-container">
+        <div class="status-card">
+            <h3>Entorno</h3>
+            <span id="environment">Comprobando...</span>
+        </div>
+
+        <div class="status-card">
+            <h3>Instancia Flask</h3>
+            <span id="instance-id">Comprobando...</span>
+        </div>
+    </div>
+
+    <!-- ESTADO DE LOS SERVICIOS -->
+    <h2>Estado de los servicios</h2>
 
     <div class="status-container">
         <div class="status-card">
             <h3>Web</h3>
-            <span id="web">Checking...</span>
+            <span id="web">Comprobando...</span>
         </div>
 
         <div class="status-card">
-            <h3>Database</h3>
-            <span id="database">Checking...</span>
+            <h3>Base de datos</h3>
+            <span id="database">Comprobando...</span>
         </div>
 
         <div class="status-card">
-            <h3>Cache</h3>
-            <span id="cache">Checking...</span>
+            <h3>Redis</h3>
+            <span id="cache">Comprobando...</span>
         </div>
     </div>
 
-    <h2>Data performance</h2>
+    <!-- RENDIMIENTO -->
+    <h2>Rendimiento de datos</h2>
 
     <div class="performance-container">
         <div class="performance-card">
-            <h3>Data source</h3>
-            <span id="data-source">Checking...</span>
+            <h3>Origen</h3>
+            <span id="data-source">Comprobando...</span>
         </div>
 
         <div class="performance-card">
-            <h3>Cache status</h3>
-            <span id="cache-result">Checking...</span>
+            <h3>Estado de cache</h3>
+            <span id="cache-result">Comprobando...</span>
         </div>
 
         <div class="performance-card">
-            <h3>Load time</h3>
-            <span id="load-time">Checking...</span>
+            <h3>Tiempo de consulta</h3>
+            <span id="load-time">Comprobando...</span>
         </div>
 
         <div class="performance-card">
-            <h3>Cache TTL</h3>
+            <h3>Tiempo de cache</h3>
             <span>60 s</span>
         </div>
     </div>
 
-    <h2>Players</h2>
+    <!-- JUGADORES -->
+    <h2>Jugadores de Inazuma Eleven</h2>
 
     <div class="controls">
-        <label for="team-filter"><strong>Team:</strong></label>
+        <label for="team-filter">
+            <strong>Equipo:</strong>
+        </label>
 
         <select id="team-filter">
-            <option value="all">All teams</option>
+            <option value="all">Todos los equipos</option>
         </select>
     </div>
 
     <div id="players" class="players-grid">
-        <div class="empty-message">Loading players...</div>
+        <div class="empty-message">Cargando jugadores...</div>
     </div>
 
-    <h2>Teams</h2>
+    <!-- EQUIPOS -->
+    <h2>Equipos</h2>
 
     <table>
         <thead>
             <tr>
-                <th>Name</th>
-                <th>Season</th>
-                <th>School / Country</th>
+                <th>Nombre</th>
+                <th>Temporada</th>
+                <th>Escuela / Pais</th>
             </tr>
         </thead>
 
         <tbody id="teams">
             <tr>
-                <td colspan="3">Loading teams...</td>
+                <td colspan="3">Cargando equipos...</td>
             </tr>
         </tbody>
     </table>
@@ -311,6 +330,8 @@
 </main>
 
 <script>
+/* DATOS Y COLORES ORIGINALES DE INAZUMA ELEVEN */
+
 let allPlayers = [];
 
 const teamColors = {
@@ -396,109 +417,7 @@ const teamColors = {
     }
 };
 
-function statusClass(value) {
-    if (value === "connected") {
-        return "connected";
-    }
-
-    if (value === "disconnected") {
-        return "disconnected";
-    }
-
-    return "not-configured";
-}
-
-function loadStatus() {
-    fetch("/status")
-        .then(response => response.json())
-        .then(data => {
-            ["web", "database", "cache"].forEach(service => {
-                const element = document.getElementById(service);
-
-                element.textContent = data[service];
-                element.className = statusClass(data[service]);
-            });
-        });
-}
-
-function loadTeams() {
-    fetch("/teams")
-        .then(response => response.json())
-        .then(data => {
-            const table = document.getElementById("teams");
-            const filter = document.getElementById("team-filter");
-
-            const dataSource = document.getElementById("data-source");
-            const cacheResult = document.getElementById("cache-result");
-            const loadTime = document.getElementById("load-time");
-
-            if (dataSource) {
-                dataSource.textContent =
-                    data.source === "cache" ? "Redis" : "MySQL";
-            }
-
-            if (cacheResult) {
-                cacheResult.textContent = data.cache || "N/A";
-                cacheResult.className =
-                    data.cache === "HIT" ? "cache-hit" : "cache-miss";
-            }
-
-            if (loadTime) {
-                loadTime.textContent =
-                    data.load_time_ms !== undefined
-                        ? data.load_time_ms + " ms"
-                        : "N/A";
-            }
-
-            table.innerHTML = "";
-
-            if (!data.teams) {
-                const row = document.createElement("tr");
-                const cell = document.createElement("td");
-
-                cell.colSpan = 3;
-                cell.textContent = "Database unavailable";
-
-                row.appendChild(cell);
-                table.appendChild(row);
-
-                return;
-            }
-
-            data.teams.forEach(team => {
-                const row = document.createElement("tr");
-
-                const colors = teamColors[team.name];
-
-                if (colors) {
-                    row.style.background = colors.background;
-                    row.style.color = colors.text;
-                    row.style.borderLeft = "6px solid " + colors.accent;
-                }
-
-                const nameCell = document.createElement("td");
-                const categoryCell = document.createElement("td");
-                const countryCell = document.createElement("td");
-
-                nameCell.innerHTML = "<strong>" + team.name + "</strong>";
-                categoryCell.textContent = team.category;
-                countryCell.textContent = team.school_or_country;
-
-                row.appendChild(nameCell);
-                row.appendChild(categoryCell);
-                row.appendChild(countryCell);
-
-                table.appendChild(row);
-
-                const option = document.createElement("option");
-                option.value = team.name;
-                option.textContent = team.name;
-
-                filter.appendChild(option);
-            });
-        });
-}
-
+/* LOGOTIPOS DE LOS EQUIPOS */
 
 const teamLogos = {
     "Raimon": "/static/images/teams/raimon.png",
@@ -519,6 +438,127 @@ const teamLogos = {
     "Dragonlink": "/static/images/teams/dragonlink.jpeg"
 };
 
+/* CLASES DE ESTADO */
+
+function statusClass(value) {
+    if (value === "connected") return "connected";
+    if (value === "disconnected") return "disconnected";
+    return "not-configured";
+}
+
+/* CONSULTAR ESTADO DE FLASK, MYSQL Y REDIS */
+
+function loadStatus() {
+    fetch("/status")
+        .then(response => response.json())
+        .then(data => {
+            ["web", "database", "cache"].forEach(service => {
+                const element = document.getElementById(service);
+                element.textContent = data[service];
+                element.className = statusClass(data[service]);
+            });
+
+            // Identificacion para demostrar las replicas.
+            document.getElementById("environment").textContent =
+                data.environment || "Desconocido";
+
+            document.getElementById("instance-id").textContent =
+                data.instance || "Desconocida";
+        })
+        .catch(() => {
+            ["web", "database", "cache"].forEach(service => {
+                const element = document.getElementById(service);
+                element.textContent = "disconnected";
+                element.className = "disconnected";
+            });
+        });
+}
+
+/* CONSULTAR EQUIPOS Y DEMOSTRAR REDIS */
+
+function loadTeams() {
+    fetch("/teams")
+        .then(response => response.json())
+        .then(data => {
+            const table = document.getElementById("teams");
+            const filter = document.getElementById("team-filter");
+
+            const dataSource = document.getElementById("data-source");
+            const cacheResult = document.getElementById("cache-result");
+            const loadTime = document.getElementById("load-time");
+
+            dataSource.textContent =
+                data.source === "cache" ? "Redis" :
+                data.source === "database" ? "MySQL" : "No disponible";
+
+            cacheResult.textContent = data.cache || "N/A";
+            cacheResult.className =
+                data.cache === "HIT" ? "cache-hit" : "cache-miss";
+
+            loadTime.textContent =
+                data.load_time_ms !== undefined
+                    ? data.load_time_ms + " ms"
+                    : "N/A";
+
+            table.innerHTML = "";
+
+            if (!data.teams) {
+                const row = document.createElement("tr");
+                const cell = document.createElement("td");
+
+                cell.colSpan = 3;
+                cell.textContent = "Base de datos no disponible";
+                row.appendChild(cell);
+                table.appendChild(row);
+                return;
+            }
+
+            // Evitamos duplicar opciones al consultar de nuevo.
+            filter.innerHTML =
+                '<option value="all">Todos los equipos</option>';
+
+            data.teams.forEach(team => {
+                const row = document.createElement("tr");
+                const colors = teamColors[team.name];
+
+                if (colors) {
+                    row.style.background = colors.background;
+                    row.style.color = colors.text;
+                    row.style.borderLeft =
+                        "6px solid " + colors.accent;
+                }
+
+                const nameCell = document.createElement("td");
+                const categoryCell = document.createElement("td");
+                const countryCell = document.createElement("td");
+
+                const strong = document.createElement("strong");
+                strong.textContent = team.name;
+                nameCell.appendChild(strong);
+
+                categoryCell.textContent = team.category;
+                countryCell.textContent = team.school_or_country;
+
+                row.appendChild(nameCell);
+                row.appendChild(categoryCell);
+                row.appendChild(countryCell);
+
+                table.appendChild(row);
+
+                const option = document.createElement("option");
+                option.value = team.name;
+                option.textContent = team.name;
+                filter.appendChild(option);
+            });
+        })
+        .catch(() => {
+            document.getElementById("data-source").textContent =
+                "No disponible";
+        });
+}
+
+/* CREAR LAS TARJETAS DE JUGADORES */
+
 function renderPlayers(players) {
     const container = document.getElementById("players");
     container.innerHTML = "";
@@ -526,8 +566,7 @@ function renderPlayers(players) {
     if (players.length === 0) {
         const message = document.createElement("div");
         message.className = "empty-message";
-        message.textContent = "No players found.";
-
+        message.textContent = "No hay jugadores disponibles.";
         container.appendChild(message);
         return;
     }
@@ -544,7 +583,6 @@ function renderPlayers(players) {
             card.style.borderColor = colors.accent;
             card.style.borderWidth = "4px";
             card.style.borderStyle = "solid";
-            card.style.boxShadow = "0 0 0 2px " + colors.accent + ", 0 4px 10px rgba(0, 0, 0, 0.15)";
         }
 
         const imageContainer = document.createElement("div");
@@ -553,46 +591,29 @@ function renderPlayers(players) {
         if (player.image_path) {
             const image = document.createElement("img");
             image.className = "player-image";
-            image.alt = player.name;
             image.src = player.image_path;
-
+            image.alt = player.name;
             imageContainer.appendChild(image);
         }
 
         const info = document.createElement("div");
         info.className = "player-info";
 
-        const name = document.createElement("h3");
-        name.textContent = player.name;
-
-        const team = document.createElement("p");
-        team.innerHTML = "<strong>Team:</strong> " + player.team;
-
-        const position = document.createElement("p");
-        position.innerHTML = "<strong>Position:</strong> " + player.position;
-
-        const element = document.createElement("p");
-        element.innerHTML = "<strong>Element:</strong> " + player.element;
-
-        const moves = document.createElement("div");
-        moves.className = "moves";
-
-        const move1 = document.createElement("p");
-        move1.innerHTML = "<strong>Move 1:</strong> " + player.best_move_1;
-
-        const move2 = document.createElement("p");
-        move2.innerHTML = "<strong>Move 2:</strong> " + player.best_move_2;
-
-        moves.appendChild(move1);
-        moves.appendChild(move2);
-
         const playerHeader = document.createElement("div");
         playerHeader.className = "player-header";
 
         const playerHeaderText = document.createElement("div");
         playerHeaderText.className = "player-header-text";
+
+        const name = document.createElement("h3");
+        name.textContent = player.name;
+
+        const team = document.createElement("p");
+        team.textContent = "Equipo: " + player.team;
+
         playerHeaderText.appendChild(name);
         playerHeaderText.appendChild(team);
+        playerHeader.appendChild(playerHeaderText);
 
         const logoPath = teamLogos[player.team];
 
@@ -601,11 +622,26 @@ function renderPlayers(players) {
             logo.className = "team-logo";
             logo.src = logoPath;
             logo.alt = player.team + " logo";
-            playerHeader.appendChild(playerHeaderText);
             playerHeader.appendChild(logo);
-        } else {
-            playerHeader.appendChild(playerHeaderText);
         }
+
+        const position = document.createElement("p");
+        position.textContent = "Posicion: " + player.position;
+
+        const element = document.createElement("p");
+        element.textContent = "Elemento: " + player.element;
+
+        const moves = document.createElement("div");
+        moves.className = "moves";
+
+        const move1 = document.createElement("p");
+        move1.textContent = "Tecnica 1: " + player.best_move_1;
+
+        const move2 = document.createElement("p");
+        move2.textContent = "Tecnica 2: " + player.best_move_2;
+
+        moves.appendChild(move1);
+        moves.appendChild(move2);
 
         info.appendChild(playerHeader);
         info.appendChild(position);
@@ -614,10 +650,11 @@ function renderPlayers(players) {
 
         card.appendChild(imageContainer);
         card.appendChild(info);
-
         container.appendChild(card);
     });
 }
+
+/* CONSULTAR JUGADORES DE MYSQL */
 
 function loadPlayers() {
     fetch("/players")
@@ -630,27 +667,35 @@ function loadPlayers() {
 
             allPlayers = data.players;
             renderPlayers(allPlayers);
-        });
+        })
+        .catch(() => renderPlayers([]));
 }
 
-document.getElementById("team-filter").addEventListener("change", function() {
-    if (this.value === "all") {
-        renderPlayers(allPlayers);
-        return;
-    }
+/* FILTRADO DE JUGADORES POR EQUIPO */
 
-    const filteredPlayers = allPlayers.filter(
-        player => player.team === this.value
-    );
+document.getElementById("team-filter")
+    .addEventListener("change", function() {
+        if (this.value === "all") {
+            renderPlayers(allPlayers);
+            return;
+        }
 
-    renderPlayers(filteredPlayers);
-});
+        const filteredPlayers = allPlayers.filter(
+            player => player.team === this.value
+        );
+
+        renderPlayers(filteredPlayers);
+    });
+
+/* INICIALIZACION DE LA PAGINA */
 
 loadStatus();
 loadTeams();
 loadPlayers();
 
+// Actualizamos el estado cada cinco segundos.
 setInterval(loadStatus, 5000);
+
 </script>
 
 </body>
