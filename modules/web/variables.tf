@@ -37,3 +37,10 @@ variable "mysql_password" {
 variable "redis_host" {
   type = string
 }
+
+# Endpoint interno del almacenamiento compartido.
+variable "minio_url" {
+  description = "URL interna del servidor MinIO"
+  type        = string
+  default     = "http://practica2-minio:8800"
+}

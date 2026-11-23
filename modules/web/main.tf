@@ -39,6 +39,7 @@ resource "docker_container" "flask" {
     "MYSQL_DATABASE=practica2",
     "REDIS_HOST=${var.redis_host}",
     "REDIS_PORT=6379",
+    "MINIO_URL=${var.minio_url}",
     "APP_ENV=${var.environment}",
     "INSTANCE_ID=${var.environment}-flask-${count.index + 1}"
   ]
