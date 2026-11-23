@@ -328,6 +328,38 @@
         </tbody>
     </table>
 
+
+<section id="minio-storage"
+    style="margin:30px auto;padding:24px;max-width:1000px;
+    border:1px solid #64748b;border-radius:12px;">
+
+    <h2>Almacenamiento compartido - MinIO</h2>
+
+    <p>
+        Archivo estatico compartido entre las replicas
+        de desarrollo y produccion.
+    </p>
+
+    <p>
+        Entorno: <strong>{{ environment }}</strong>
+        | Instancia: <strong>{{ instance_id }}</strong>
+    </p>
+
+    <iframe
+        src="/storage/prueba.txt"
+        title="Archivo compartido desde MinIO"
+        style="width:100%;height:180px;background:#ffffff;
+        border:1px solid #64748b;border-radius:6px;">
+    </iframe>
+
+    <p>
+        <a href="/storage/prueba.txt" target="_blank">
+            Consultar archivo almacenado en MinIO
+        </a>
+    </p>
+
+</section>
+
 </main>
 
 <script>
