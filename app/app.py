@@ -3,12 +3,13 @@
 # Flask conectado a MySQL y Redis.
 # La infraestructura se despliega mediante Terraform.
 
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, Response
 import json
 import time
 import os
 import pymysql
 import redis
+import urllib.request
 
 app = Flask(__name__)
 
@@ -195,6 +196,44 @@ def teams():
     except Exception:
         return jsonify({
             "error": "database unavailable"
+        }), 503
+
+
+
+# Obtiene un archivo estatico desde MinIO.
+# Todas las replicas utilizan el mismo almacenamiento.
+@app.route("/storage/prueba.txt")
+def storage_file():
+    minio_url = os.getenv(
+        "MINIO_URL",
+        "http://practica2-minio:8800"
+    )
+
+    url = (
+        minio_url.rstrip("/")
+        + "/practica2-static/prueba.txt"
+    )
+
+    try:
+        with urllib.request.urlopen(url, timeout=3) as response:
+            contenido = response.read(65536)
+
+        return Response(
+            contenido,
+            mimetype="text/plain",
+            headers={
+                "X-Storage": "MinIO",
+                "X-Instance": os.getenv("INSTANCE_ID", "unknown"),
+                "Cache-Control": "no-store"
+            }
+        )
+
+    except Exception as error:
+        app.logger.warning("MinIO no disponible: %s", error)
+
+        return jsonify({
+            "storage": "disconnected",
+            "instance": os.getenv("INSTANCE_ID", "unknown")
         }), 503
 
 
