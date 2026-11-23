@@ -340,3 +340,56 @@ down-dev:
 
 down-prod:
 	terraform -chdir=environments/prod destroy
+
+# ============================================================
+# 14. MONITORIZACION Y ALMACENAMIENTO COMPARTIDO
+# ============================================================
+
+.PHONY: init-monitoring validate-monitoring plan-monitoring
+.PHONY: up-monitoring init-minio check-minio reload-nginx
+.PHONY: deploy-full check-full
+
+init-monitoring:
+	terraform -chdir=environments/monitoring init
+
+validate-monitoring:
+	terraform -chdir=environments/monitoring validate
+
+plan-monitoring:
+	terraform -chdir=environments/monitoring plan
+
+up-monitoring:
+	terraform -chdir=environments/monitoring apply
+
+init-minio:
+	bash scripts/init-minio.sh
+
+reload-nginx:
+	docker exec practica2-dev-nginx nginx -t
+	docker exec practica2-prod-nginx nginx -t
+	docker exec practica2-dev-nginx nginx -s reload
+	docker exec practica2-prod-nginx nginx -s reload
+
+check-minio:
+	@echo "===== ALMACENAMIENTO DEV ====="
+	curl -fsS $(DEV_URL)/storage/prueba.txt
+	@echo ""
+	@echo "===== ALMACENAMIENTO PROD ====="
+	curl -fsS $(PROD_URL)/storage/prueba.txt
+	@echo ""
+
+deploy-full:
+	$(MAKE) init-all
+	$(MAKE) init-monitoring
+	$(MAKE) validate-all
+	$(MAKE) validate-monitoring
+	$(MAKE) up-all
+	$(MAKE) up-monitoring
+	$(MAKE) init-minio
+	$(MAKE) reload-nginx
+	$(MAKE) check-full
+
+check-full:
+	$(MAKE) check
+	$(MAKE) check-minio
+	$(MAKE) nginx-test
