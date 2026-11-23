@@ -40,3 +40,33 @@ __pycache__/
 # Archivos comprimidos.
 *.rar
 *.zip
+
+# ==========================================
+# TERRAFORM - Archivos locales y sensibles
+# ==========================================
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfplan.*
+.terraform.tfstate.lock.info
+crash.log
+crash.*.log
+
+# Configuraciones privadas
+.env
+.env.*
+!.env.example
+*.auto.tfvars
+*.auto.tfvars.json
+*.secret.tfvars
+
+# Archivos temporales
+*.bak
+*.swp
+*.swo
+*.pyc
+__pycache__/
+
+# Archivos de entrega
+*.zip
