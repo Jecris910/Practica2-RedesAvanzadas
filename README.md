@@ -1161,3 +1161,109 @@ Mediante Terraform y Docker se ha desarrollado una infraestructura modular con d
 La utilización de módulos reutilizables, variables y scripts de automatización facilita el mantenimiento y la gestión de la infraestructura.
 
 El proyecto demuestra la aplicación de estos conceptos en un entorno local que simula un despliegue cloud, sin necesidad de utilizar Docker Swarm ni servicios cloud externos.
+
+## Justificacion de las decisiones tecnicas
+
+### Eleccion del balanceador
+
+Se utiliza Nginx por su reducido consumo de recursos,
+su integracion con Docker y su capacidad para actuar
+como proxy inverso y balanceador de carga.
+
+### Politica de distribucion
+
+Se utiliza Round Robin, politica predeterminada de Nginx.
+
+Esta politica distribuye las solicitudes entre replicas
+con caracteristicas similares sin introducir mecanismos
+de balanceo innecesariamente complejos.
+
+DEV dispone de dos replicas Flask y PROD de tres.
+
+### Generacion de la configuracion de Nginx
+
+Terraform utiliza templatefile() para construir la
+configuracion del balanceador a partir de una plantilla.
+
+El recurso local_file del proveedor hashicorp/local
+genera un archivo nginx.conf independiente por entorno.
+
+Docker monta dicho archivo en modo de solo lectura.
+La imagen oficial de Nginx conserva su arranque original.
+
+Cuando cambia la configuracion, Terraform recrea
+el balanceador correspondiente.
+
+Los archivos generados no se versionan, puesto que
+pueden reconstruirse mediante Terraform.
+
+### Simplificacion de la infraestructura
+
+Se han eliminado variables sin uso, parametros redundantes
+y dependencias que Terraform puede deducir automaticamente.
+
+Los parametros de disponibilidad y seguridad se mantienen
+cuando representan decisiones explicitas de la arquitectura.
+
+### Inicializacion de servicios
+
+MySQL se inicializa mediante init.sql.
+
+MinIO utiliza scripts/init-minio.sh para crear el bucket,
+el objeto estatico y su politica de acceso.
+
+Grafana dispone de un script de restauracion que permite
+recuperar la configuracion previamente exportada.
+
+### Persistencia y reproducibilidad de Grafana
+
+El volumen practica2-grafana-data conserva la configuracion
+cuando se recrea el contenedor Grafana.
+
+Si se elimina tambien el volumen, los dashboards pueden
+recuperarse desde los archivos JSON versionados en GitHub
+mediante make restore-grafana.
+
+La recuperacion incluye fuentes de datos, carpetas,
+dashboards, alertas, contactos y politicas de notificacion.
+
+Esto permite reconstruir la configuracion de Grafana sin
+depender de un volumen anterior.
+
+Las metricas historicas no se recuperan si se elimina
+el almacenamiento de Prometheus.
+
+### Funcionamiento de Prometheus
+
+cAdvisor obtiene metricas de los contenedores Docker
+mediante el acceso a informacion del sistema anfitrion,
+Docker y los cgroups de Linux.
+
+Prometheus utiliza un modelo Pull y consulta cada 15
+segundos el endpoint de metricas de cAdvisor.
+
+Los targets configurados son:
+
+- Prometheus: 127.0.0.1:8400/metrics
+- cAdvisor: 127.0.0.1:8300/metrics
+
+Las metricas se almacenan como series temporales y
+Grafana las consulta mediante PromQL.
+
+Entre las metricas utilizadas se encuentran:
+
+- container_cpu_usage_seconds_total
+- container_memory_usage_bytes
+- container_last_seen
+
+Grafana evalua las reglas de alerta configuradas y envia
+las notificaciones mediante Mailpit.
+
+### Centralizacion de logs
+
+Alloy descubre los contenedores mediante el socket Docker,
+recoge sus logs y los envia a Loki.
+
+Grafana permite consultar estos registros utilizando LogQL,
+incluidos los logs de los balanceadores Nginx de DEV y PROD.
+
