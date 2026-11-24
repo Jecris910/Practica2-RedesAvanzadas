@@ -49,6 +49,15 @@ resource "docker_container" "prometheus" {
     "--web.listen-address=127.0.0.1:8400"
   ]
 
+
+  healthcheck {
+    test         = ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8400/-/ready"]
+    interval     = "30s"
+    timeout      = "5s"
+    retries      = 3
+    start_period = "60s"
+  }
+
   volumes {
     host_path      = abspath("${path.module}/prometheus.yml")
     container_path = "/etc/prometheus/prometheus.yml"
@@ -98,6 +107,15 @@ resource "docker_container" "grafana" {
   ]
 
   # Conserva dashboards, usuarios y configuraciones.
+
+  healthcheck {
+    test         = ["CMD", "curl", "-fsS", "http://127.0.0.1:8500/api/health"]
+    interval     = "30s"
+    timeout      = "5s"
+    retries      = 3
+    start_period = "60s"
+  }
+
   volumes {
     volume_name    = docker_volume.grafana_data.name
     container_path = "/var/lib/grafana"
