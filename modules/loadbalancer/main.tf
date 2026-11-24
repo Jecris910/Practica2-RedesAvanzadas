@@ -5,6 +5,11 @@
 
 terraform {
   required_providers {
+    local = {
+      source  = "hashicorp/local"
+      version = "2.6.2"
+    }
+
     docker = {
       source  = "kreuzwerker/docker"
       version = "4.6.0"
@@ -17,7 +22,7 @@ terraform {
 locals {
   upstream_servers = join("\n", [
     for i in range(var.replicas) :
-    "    server practica2-${var.environment}-flask-${i + 1}:5000 resolve max_fails=1 fail_timeout=5s;"
+    "    server practica2-${var.environment}-flask-${i + 1}:5000 resolve fail_timeout=5s;"
   ])
 
   # Configuracion Nginx a partir de una plantilla reutilizable.
@@ -27,6 +32,13 @@ locals {
       upstream_servers = local.upstream_servers
     }
   )
+}
+
+# Genera un archivo independiente para cada entorno.
+resource "local_file" "nginx_config" {
+  content         = local.nginx_config
+  filename        = abspath("${path.root}/generated/nginx.conf")
+  file_permission = "0644"
 }
 
 # Imagen oficial de Nginx.
@@ -41,18 +53,17 @@ resource "docker_container" "nginx" {
   image   = docker_image.nginx.image_id
   restart = "unless-stopped"
 
-  # Genera el archivo de configuracion dentro del contenedor.
-  # No necesitamos Docker Compose ni archivos con contrasenas.
-  command = [
-    "/bin/sh",
-    "-c",
-    <<-EOT
-      cat > /etc/nginx/conf.d/default.conf <<'NGINX_CONFIG'
-      ${local.nginx_config}
-      NGINX_CONFIG
-      exec nginx -g 'daemon off;'
-    EOT
-  ]
+  # Monta la configuracion generada por Terraform.
+  volumes {
+    host_path      = local_file.nginx_config.filename
+    container_path = "/etc/nginx/conf.d/default.conf"
+    read_only      = true
+  }
+
+  # Recrea Nginx cuando cambia su configuracion.
+  lifecycle {
+    replace_triggered_by = [local_file.nginx_config]
+  }
 
   # Conexion con las instancias Flask de su entorno.
   networks_advanced {

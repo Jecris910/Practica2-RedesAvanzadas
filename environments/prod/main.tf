@@ -34,7 +34,6 @@ module "web" {
   network_name  = module.network.network_name
   build_context = abspath("${path.root}/../../app")
   replicas      = var.web_replicas
-  base_port     = 5201
 
   mysql_host     = module.database.container_name
   mysql_password = module.database.app_password

@@ -20,11 +20,6 @@ variable "replicas" {
   }
 }
 
-variable "base_port" {
-  description = "Primer puerto HTTP publicado en Ubuntu"
-  type        = number
-}
-
 variable "mysql_host" {
   type = string
 }

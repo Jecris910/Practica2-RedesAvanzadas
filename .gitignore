@@ -77,3 +77,6 @@ __pycache__/
 # Configuracion publica de los entornos Terraform.
 !/environments/dev/terraform.tfvars
 !/environments/prod/terraform.tfvars
+
+# Configuracion generada por Terraform
+**/generated/

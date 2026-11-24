@@ -55,7 +55,7 @@ resource "docker_container" "prometheus" {
     interval     = "30s"
     timeout      = "5s"
     retries      = 3
-    start_period = "60s"
+    start_period = "1m0s"
   }
 
   volumes {
@@ -113,7 +113,7 @@ resource "docker_container" "grafana" {
     interval     = "30s"
     timeout      = "5s"
     retries      = 3
-    start_period = "60s"
+    start_period = "1m0s"
   }
 
   volumes {
@@ -121,7 +121,4 @@ resource "docker_container" "grafana" {
     container_path = "/var/lib/grafana"
   }
 
-  depends_on = [
-    docker_volume.grafana_data
-  ]
 }
