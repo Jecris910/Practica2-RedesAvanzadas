@@ -241,36 +241,7 @@ logs-prod:
 #
 
 demo:
-	@set -e; \
-	printf '\n'; \
-	printf '==================================================\n'; \
-	printf '       PRACTICA 2 - DEMOSTRACION INTERACTIVA\n'; \
-	printf '==================================================\n'; \
-	printf ' Terraform + Docker + Flask + MySQL + Redis + Nginx\n'; \
-	printf '==================================================\n'; \
-	printf '\n[1/7] ESTADO DE LOS CONTENEDORES\n'; \
-	read -r -p 'Pulsa ENTER para mostrar los contenedores...' dummy; \
-	$(MAKE) --no-print-directory status; \
-	printf '\n[2/7] COMPROBAR SERVICIOS DEV\n'; \
-	read -r -p 'Pulsa ENTER para comprobar DEV...' dummy; \
-	$(MAKE) --no-print-directory check-dev; \
-	printf '\n[3/7] COMPROBAR SERVICIOS PROD\n'; \
-	read -r -p 'Pulsa ENTER para comprobar PROD...' dummy; \
-	$(MAKE) --no-print-directory check-prod; \
-	printf '\n[4/7] ROUND ROBIN DEV - 2 INSTANCIAS\n'; \
-	read -r -p 'Pulsa ENTER para ejecutar la prueba...' dummy; \
-	$(MAKE) --no-print-directory balance-dev; \
-	printf '\n[5/7] ROUND ROBIN PROD - 3 INSTANCIAS\n'; \
-	read -r -p 'Pulsa ENTER para ejecutar la prueba...' dummy; \
-	$(MAKE) --no-print-directory balance-prod; \
-	printf '\n[6/7] VALIDACION DE NGINX\n'; \
-	read -r -p 'Pulsa ENTER para validar Nginx...' dummy; \
-	$(MAKE) --no-print-directory nginx-test; \
-	printf '\n[7/7] FINALIZAR\n'; \
-	read -r -p 'Pulsa ENTER para finalizar la demostracion...' dummy; \
-	printf '\n==================================================\n'; \
-	printf ' DEMOSTRACION FINALIZADA CORRECTAMENTE\n'; \
-	printf '==================================================\n'
+	bash scripts/demo.sh
 
 # ============================================================
 # 12. DEMOSTRACION DE ALTA DISPONIBILIDAD
