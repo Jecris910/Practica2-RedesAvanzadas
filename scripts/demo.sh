@@ -64,6 +64,7 @@ echo "============================================================"
 paso 1 "CONTENEDORES DESPLEGADOS"
 
 ejecutar status
+ejecutar health
 
 cantidad=$(docker ps \
     --filter "name=practica2-" \
@@ -344,6 +345,8 @@ echo "Mailpit: http://localhost:8025"
 
 read -r -p "Pulsa ENTER para iniciar la prueba..." dummy
 
+ejecutar mailpit
+
 ejecutar alert-flask-prod
 
 echo
@@ -400,6 +403,7 @@ ejecutar balance-prod
 ejecutar test-monitoring
 
 ejecutar status
+ejecutar health
 
 cantidad=$(docker ps \
     --filter "name=practica2-" \

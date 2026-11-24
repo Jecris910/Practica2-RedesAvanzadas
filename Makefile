@@ -66,6 +66,12 @@ help:
 	@echo ""
 	@echo "COMPROBACIONES:"
 	@echo "  make status          Ver todos los contenedores"
+	@echo "  make health          Comprobar salud de contenedores"
+	@echo "  make healthy         Mostrar contenedores saludables"
+	@echo "  make unhealthy       Mostrar contenedores no saludables"
+	@echo "  make events          Ver eventos recientes de Docker"
+	@echo "  make urls            Mostrar direcciones de servicios"
+	@echo "  make mailpit         Comprobar servicio de correo"
 	@echo "  make status-dev      Ver contenedores DEV"
 	@echo "  make status-prod     Ver contenedores PROD"
 	@echo "  make check           Comprobar DEV y PROD"
@@ -119,11 +125,16 @@ help:
 	@echo "SERVICIOS:"
 	@echo "  cAdvisor:    http://localhost:8300"
 	@echo "  Prometheus:  http://localhost:8400"
+	@echo "  Targets:     http://localhost:8400/targets"
 	@echo "  Grafana:     http://localhost:8500"
+	@echo "  Dashboards:  http://localhost:8500/dashboards"
+	@echo "  Alertas:     http://localhost:8500/alerting/list"
+	@echo "  Explore:     http://localhost:8500/explore"
 	@echo "  Mailpit:     http://localhost:8025"
 	@echo "  Loki:        http://localhost:8600"
 	@echo "  Alloy:       http://localhost:8700"
 	@echo "  MinIO:       http://localhost:8801"
+	@echo "  MinIO API:   http://localhost:8800"
 	@echo ""
 	@echo "WEB DEV:  $(DEV_URL)"
 	@echo "WEB PROD: $(PROD_URL)"
@@ -275,7 +286,7 @@ logs-prod:
 # El profesor puede ver cada prueba por separado.
 # Solo se avanza cuando el alumno pulsa ENTER.
 #
-# Esta parte NO modifica la infraestructura.
+# Incluye pruebas controladas de persistencia y alertas.
 #
 
 demo:
@@ -459,3 +470,67 @@ test-monitoring:
 
 test-logs:
 	bash scripts/test-logs.sh
+
+
+# ============================================================
+# 17. DIRECCIONES Y ESTADO DE LOS SERVICIOS
+# ============================================================
+
+.PHONY: urls health healthy unhealthy events mailpit
+
+urls:
+	@echo ""
+	@echo "===== APLICACIONES ====="
+	@echo "DEV:            http://localhost:8100"
+	@echo "PROD:           http://localhost:8200"
+	@echo ""
+	@echo "===== MONITORIZACION ====="
+	@echo "cAdvisor:       http://localhost:8300"
+	@echo "Prometheus:     http://localhost:8400"
+	@echo "Targets:        http://localhost:8400/targets"
+	@echo "Grafana:        http://localhost:8500"
+	@echo "Dashboards:     http://localhost:8500/dashboards"
+	@echo "Alertas:        http://localhost:8500/alerting/list"
+	@echo "Explore:        http://localhost:8500/explore"
+	@echo "Loki API:       http://localhost:8600"
+	@echo "Alloy:          http://localhost:8700"
+	@echo ""
+	@echo "===== ALMACENAMIENTO ====="
+	@echo "MinIO API:      http://localhost:8800"
+	@echo "MinIO consola:  http://localhost:8801"
+	@echo ""
+	@echo "===== NOTIFICACIONES ====="
+	@echo "Mailpit:        http://localhost:8025"
+
+health:
+	@bash scripts/test-health.sh
+
+healthy:
+	@echo "===== CONTENEDORES HEALTHY ====="
+	@docker ps \
+		--filter "name=practica2-" \
+		--filter "health=healthy" \
+		--format 'table {{.Names}}\t{{.Status}}'
+
+unhealthy:
+	@echo "===== CONTENEDORES UNHEALTHY ====="
+	@docker ps \
+		--filter "name=practica2-" \
+		--filter "health=unhealthy" \
+		--format 'table {{.Names}}\t{{.Status}}'
+
+events:
+	@echo "===== EVENTOS DOCKER DE LOS ULTIMOS 10 MINUTOS ====="
+	@docker events --since 10m --until 0s \
+		--filter type=container \
+		--format '{{.Time}} {{.Action}} {{.Actor.Attributes.name}}' \
+		| grep 'practica2-' || true
+
+mailpit:
+	@echo "===== COMPROBANDO MAILPIT ====="
+	@curl -fsS --max-time 10 \
+		http://127.0.0.1:8025/ >/dev/null
+	@echo "[OK] Interfaz Mailpit accesible"
+	@echo "Mailpit: http://localhost:8025"
+	@echo "SMTP:    127.0.0.1:1025"
+
