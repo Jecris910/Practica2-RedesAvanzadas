@@ -1,357 +1,542 @@
+# Practica 2 - Redes Avanzadas
 
-# Práctica 2 - Redes Avanzadas
+## Infraestructura como codigo con Terraform y Docker
 
-## Infraestructura como Código con Terraform y Docker
+Despliegue automatizado de una aplicacion web de Inazuma Eleven
+mediante Terraform y contenedores Docker.
 
-Despliegue de la aplicación **Inazuma Eleven**, desarrollada en la Práctica 1, mediante infraestructura como código utilizando Terraform y el proveedor Docker.
-
-La infraestructura dispone de dos entornos independientes, DEV y PROD, con aplicaciones Flask replicadas, bases de datos MySQL, caché Redis y balanceadores de carga Nginx.
+El proyecto dispone de dos entornos simultaneos, DEV y PROD,
+con balanceo de carga, persistencia de datos, cache, almacenamiento
+compartido, monitorizacion, alertas y centralizacion de registros.
 
 ## 1. Objetivos
 
-- Automatizar la creación de infraestructura con Terraform.
-- Separar desarrollo y producción mediante redes Docker.
-- Reutilizar módulos comunes entre entornos.
-- Configurar persistencia de datos en MySQL.
-- Implementar una caché Redis.
-- Distribuir peticiones mediante Nginx y Round Robin.
-- Mostrar en la interfaz la instancia Flask que atiende cada página.
-- Demostrar tolerancia a la caída de una réplica web.
-- Incorporar monitorización, logs, alertas y almacenamiento compartido.
+- Automatizar el despliegue mediante Terraform.
+- Reutilizar infraestructura mediante modulos.
+- Separar los entornos DEV y PROD.
+- Implementar balanceo de carga Round Robin.
+- Proporcionar alta disponibilidad en la capa Flask de PROD.
+- Monitorizar CPU, memoria y estado de los contenedores.
+- Generar alertas ante caidas de servicios.
+- Centralizar los registros mediante Loki y Alloy.
+- Compartir archivos mediante almacenamiento de objetos MinIO.
+- Automatizar las pruebas y la demostracion mediante Makefile.
 
-## 2. Tecnologías
-
-| Tecnología | Función |
-|---|---|
-| Terraform | Infraestructura como código |
-| Docker | Contenedores y redes |
-| Python y Flask | Aplicación web |
-| MySQL 8.4 | Base de datos |
-| Redis 7.4 | Caché |
-| Nginx 1.29 | Balanceador de carga |
-| GNU Make | Automatización |
-
-Las tecnologías de monitorización y almacenamiento se documentarán cuando se implementen.
-
-## 3. Arquitectura
+## 2. Arquitectura
 
 ```mermaid
 flowchart TB
-    U[Usuario / Firefox]
-    U --> D[Nginx DEV :8100]
-    U --> P[Nginx PROD :8200]
 
-    subgraph DEV
-        D --> D1[Flask DEV 1]
-        D --> D2[Flask DEV 2]
-        D1 --> DM[(MySQL DEV)]
-        D2 --> DM
-        D1 --> DR[(Redis DEV)]
-        D2 --> DR
+    U[Usuario]
+
+    subgraph DEV["Entorno DEV - Red Docker independiente"]
+        ND["Nginx :8100"]
+        D1[Flask 1]
+        D2[Flask 2]
+        DB1[(MySQL DEV)]
+        R1[(Redis DEV)]
+        V1[(Volumen MySQL DEV)]
+
+        ND -->|Round Robin| D1
+        ND -->|Round Robin| D2
+
+        D1 --> DB1
+        D2 --> DB1
+        D1 --> R1
+        D2 --> R1
+
+        DB1 --- V1
     end
 
-    subgraph PROD
-        P --> P1[Flask PROD 1]
-        P --> P2[Flask PROD 2]
-        P --> P3[Flask PROD 3]
-        P1 --> PM[(MySQL PROD)]
-        P2 --> PM
-        P3 --> PM
-        P1 --> PR[(Redis PROD)]
-        P2 --> PR
-        P3 --> PR
+    subgraph PROD["Entorno PROD - Red Docker independiente"]
+        NP["Nginx :8200"]
+        P1[Flask 1]
+        P2[Flask 2]
+        P3[Flask 3]
+        DB2[(MySQL PROD)]
+        R2[(Redis PROD)]
+        V2[(Volumen MySQL PROD)]
+
+        NP -->|Round Robin| P1
+        NP -->|Round Robin| P2
+        NP -->|Round Robin| P3
+
+        P1 --> DB2
+        P2 --> DB2
+        P3 --> DB2
+
+        P1 --> R2
+        P2 --> R2
+        P3 --> R2
+
+        DB2 --- V2
+    end
+
+    U --> ND
+    U --> NP
+
+    subgraph STORAGE["Almacenamiento compartido"]
+        M["MinIO :8800"]
+        VM[(Volumen MinIO)]
+        M --- VM
+    end
+
+    D1 --> M
+    D2 --> M
+    P1 --> M
+    P2 --> M
+    P3 --> M
+
+    subgraph MON["Monitorizacion centralizada"]
+        DK[Docker]
+        C["cAdvisor :8300"]
+        PR["Prometheus :8400"]
+        G["Grafana :8500"]
+        A["Alloy :8700"]
+        L["Loki :8600"]
+        MP["Mailpit :8025"]
+
+        DK -->|Metricas| C
+        C --> PR
+        PR --> G
+
+        DK -->|Logs| A
+        A --> L
+        L --> G
+
+        G -->|Alertas SMTP| MP
     end
 ```
 
-DEV y PROD tienen redes y volúmenes de base de datos independientes. Ambos entornos pueden funcionar simultáneamente.
+## 3. Tecnologias utilizadas
 
-### Entorno DEV
+| Tecnologia | Funcionalidad |
+|---|---|
+| Terraform | Infraestructura como codigo |
+| Docker | Ejecucion de contenedores |
+| Flask | Aplicacion web |
+| MySQL | Base de datos relacional |
+| Redis | Cache |
+| Nginx | Balanceador de carga |
+| cAdvisor | Metricas de contenedores |
+| Prometheus | Recopilacion de metricas |
+| Grafana | Visualizacion y alertas |
+| Loki | Almacenamiento de registros |
+| Alloy | Recopilacion de registros |
+| Mailpit | Recepcion local de correos |
+| MinIO | Almacenamiento de objetos compatible con S3 |
+| Makefile | Automatizacion |
+| Git y GitHub | Control de versiones |
 
-- 1 Nginx, puerto 8100.
-- 2 instancias Flask.
-- 1 MySQL con volumen persistente.
-- 1 Redis.
-- Red `practica2-dev-network`.
+## 4. Entornos
 
-### Entorno PROD
+| Caracteristica | DEV | PROD |
+|---|---|---|
+| Replicas Flask | 2 | 3 |
+| Balanceador | Nginx | Nginx |
+| Politica | Round Robin | Round Robin |
+| Base de datos | MySQL | MySQL |
+| Cache | Redis | Redis |
+| Puerto web | 8100 | 8200 |
+| Red Docker | Independiente | Independiente |
+| Monitorizacion | Si | Si |
+| Alertas | Si | Si |
+| Almacenamiento MinIO | Compartido | Compartido |
 
-- 1 Nginx, puerto 8200.
-- 3 instancias Flask.
-- 1 MySQL con volumen persistente.
-- 1 Redis.
-- Red `practica2-prod-network`.
+Las replicas web son intercambiables y muestran su identificador
+de instancia.
 
-## 4. Organización del proyecto
+Cada entorno dispone de su propia base de datos, cache y red Docker.
+MinIO se conecta a ambas redes para proporcionar almacenamiento
+compartido.
+
+## 5. Estructura del proyecto
 
 ```text
 Practica2/
-├── app/                   # Flask, HTML e imágenes
-├── db/                    # Dockerfile e inicialización MySQL
-├── modules/
-│   ├── network/           # Redes Docker
-│   ├── database/          # MySQL y persistencia
-│   ├── cache/             # Redis
-│   ├── web/               # Réplicas Flask
-│   └── loadbalancer/      # Nginx y Round Robin
+├── app/
+│   └── Aplicacion web Flask
 ├── environments/
-│   ├── dev/               # Terraform para desarrollo
-│   └── prod/              # Terraform para producción
-├── Makefile               # Comandos automatizados
-├── .gitignore             # Exclusión de archivos sensibles
+│   ├── dev/
+│   │   └── terraform.tfvars
+│   ├── prod/
+│   │   └── terraform.tfvars
+│   └── monitoring/
+│       └── grafana/
+├── modules/
+│   └── Modulos reutilizables Terraform
+├── scripts/
+│   ├── init-minio.sh
+│   ├── export-grafana.py
+│   ├── restore-grafana.py
+│   ├── test-cache.sh
+│   ├── test-persistencia.sh
+│   ├── test-minio.sh
+│   ├── test-monitoring.sh
+│   ├── test-logs.sh
+│   ├── demo-alertas.sh
+│   └── demo.sh
+├── Makefile
+├── .gitignore
 └── README.md
 ```
 
-## 5. Requisitos de instalación
+La infraestructura se organiza mediante modulos reutilizables,
+variables de entrada y salidas de Terraform.
 
-Se necesita:
+Los archivos terraform.tfvars permiten configurar independientemente
+el numero de replicas y el nombre de cada entorno.
 
-- Un sistema Linux con Docker instalado y activo.
-- Terraform y acceso al proveedor Docker.
+## 6. Requisitos
+
+- Ubuntu o entorno Linux compatible.
+- Docker Engine.
+- Terraform.
 - GNU Make.
-- Python 3 para las pruebas automatizadas.
-- Git para clonar el repositorio.
+- Git.
+- Python 3.
+- curl.
+- Conexion a Internet para descargar las imagenes y proveedores.
 
-Las imágenes de los servicios se obtienen o construyen mediante Docker.
+El usuario debe disponer de permisos para utilizar Docker.
 
-## 6. Instalación y despliegue
+## 7. Instalacion y despliegue
 
-Clonar el repositorio:
+### Clonar el repositorio
 
 ```bash
 git clone https://github.com/Jecris910/Practica2-RedesAvanzadas.git
 cd Practica2-RedesAvanzadas
 ```
 
-Inicializar Terraform:
+### Consultar los comandos disponibles
 
 ```bash
-make init-dev
-make init-prod
+make help
 ```
 
-Validar las configuraciones:
+### Desplegar la infraestructura
 
 ```bash
-make fmt
-make validate-dev
-make validate-prod
+make deploy-full
 ```
 
-Comprobar los cambios:
+Este comando inicializa Terraform, valida la configuracion,
+despliega DEV, PROD y la plataforma de monitorizacion,
+inicializa MinIO y realiza comprobaciones de funcionamiento.
+
+### Recuperar la configuracion de Grafana
 
 ```bash
-make plan-dev
-make plan-prod
+make restore-grafana
 ```
 
-Desplegar ambos entornos:
+El script solicita las credenciales de Grafana de forma interactiva.
+
+Permite recuperar las fuentes de datos, carpetas, dashboards,
+contactos, alertas y politicas de notificacion exportadas.
+
+La restauracion sobre la instancia existente se ha comprobado
+sin duplicar recursos.
+
+### Comprobar el despliegue
 
 ```bash
-make up-dev
-make up-prod
-```
-
-También puede utilizarse:
-
-```bash
-make up-all
-```
-
-Terraform crea los contenedores, redes y volúmenes definidos en cada entorno.
-
-Los archivos `terraform.tfvars` se mantienen localmente y no se publican en GitHub. Las variables de entorno están definidas en `variables.tf` y sus valores locales deben configurarse antes del despliegue.
-
-## 7. Acceso a la aplicación web
-
-Los servicios se publican en la dirección de loopback de la máquina Ubuntu.
-
-| Entorno | Dirección |
-|---|---|
-| DEV | http://localhost:8100 |
-| PROD | http://localhost:8200 |
-
-Los contenedores Flask, MySQL y Redis no publican puertos al host. Se comunican a través de sus redes Docker.
-
-## 8. Balanceador de carga
-
-Se utiliza Nginx con la política **Round Robin**.
-
-Nginx distribuye las peticiones sucesivas entre las réplicas Flask disponibles.
-
-- DEV: 2 instancias.
-- PROD: 3 instancias.
-
-La aplicación muestra un identificador diferente en cada réplica, por ejemplo `dev-flask-1` o `prod-flask-3`.
-
-La configuración incluye reintentos ante determinados errores de conexión y mecanismos para gestionar temporalmente servidores fallidos.
-
-## 9. Pruebas y verificaciones
-
-### 9.1. Estado de servicios
-
-```bash
+make check-full
 make status
-make check
+make test-monitoring
 ```
 
-El endpoint `/status` permite consultar el estado de Flask, MySQL y Redis.
+## 8. Acceso a los servicios
 
-Resultados comprobados: los servicios respondieron con `connected` en DEV y PROD.
+Las siguientes direcciones corresponden a la maquina donde
+se ejecuta Docker.
 
-### 9.2. Round Robin
+| Servicio | URL |
+|---|---|
+| Aplicacion DEV | http://localhost:8100 |
+| Aplicacion PROD | http://localhost:8200 |
+| cAdvisor | http://localhost:8300 |
+| Prometheus | http://localhost:8400 |
+| Grafana | http://localhost:8500 |
+| Loki | http://localhost:8600 |
+| Alloy | http://localhost:8700 |
+| Mailpit | http://localhost:8025 |
+| MinIO API | http://localhost:8800 |
+| MinIO Consola | http://localhost:8801 |
+
+## 9. Balanceo de carga
+
+Nginx distribuye las peticiones entre las replicas Flask
+mediante la politica Round Robin.
+
+Esta politica reparte las solicitudes sucesivamente entre
+las instancias disponibles, sin asignar prioridades diferentes.
+
+DEV dispone de dos replicas y PROD dispone de tres replicas.
 
 ```bash
 make balance-dev
 make balance-prod
 ```
 
-Prueba realizada en DEV:
+Resultados observados:
 
-- 10 peticiones.
-- 5 respuestas desde `dev-flask-1`.
-- 5 respuestas desde `dev-flask-2`.
+| Entorno | Peticiones | Distribucion |
+|---|---:|---|
+| DEV | 10 | 5 + 5 |
+| PROD | 12 | 4 + 4 + 4 |
 
-Prueba realizada en PROD:
+Se ha comprobado que Nginx puede seguir atendiendo peticiones
+cuando una replica Flask de PROD se detiene.
 
-- 12 peticiones.
-- 4 respuestas por cada una de las tres instancias Flask.
+## 10. Persistencia y cache
 
-El orden de inicio puede variar, pero el reparto fue uniforme durante las pruebas.
+MySQL utiliza volumenes Docker persistentes e independientes
+para cada entorno.
 
-### 9.3. Tolerancia a fallos de una réplica
-
-Detener una instancia web de PROD:
-
-```bash
-docker stop practica2-prod-flask-2
-```
-
-Comprobar que Nginx continúa respondiendo:
+Redis almacena temporalmente los resultados de las consultas
+de equipos, evitando consultas repetidas a MySQL.
 
 ```bash
-make balance-prod
+make test-cache
+make test-persistencia
 ```
 
-Resultado comprobado: el balanceador siguió atendiendo peticiones utilizando `prod-flask-1` y `prod-flask-3`.
+### Resultados reales de la prueba Redis
 
-Recuperar la instancia:
+| Entorno | CACHE MISS | CACHE HIT |
+|---|---:|---:|
+| DEV | 189.87 ms | 17.51 ms |
+| PROD | 103.61 ms | 10.72 ms |
 
-```bash
-docker start practica2-prod-flask-2
-```
+En ambos entornos se recuperaron 17 equipos.
 
-Esta prueba demuestra tolerancia a la caída de una réplica Flask, pero no alta disponibilidad del balanceador Nginx.
+Estos tiempos corresponden a una ejecucion concreta de la prueba.
+Pueden variar dependiendo de la carga y los recursos disponibles.
 
-### 9.4. Persistencia MySQL
+### Resultados de persistencia
 
-La base de datos utiliza un volumen Docker persistente.
+Se compararon los datos de los jugadores mediante SHA256
+antes y despues de reiniciar MySQL.
 
-Se introdujo un registro de prueba en PROD y se recreó el contenedor MySQL, comprobando que el registro permanecía almacenado.
+| Entorno | Resultado |
+|---|---|
+| DEV | Hash inicial y final identicos |
+| PROD | Hash inicial y final identicos |
 
-### 9.5. Caché Redis
+La prueba verifica la conservacion de los datos tras un reinicio.
+La recreacion completa del contenedor requiere una prueba adicional.
 
-Se comprobó el funcionamiento de la caché observando respuestas MISS y HIT.
+## 11. Almacenamiento compartido
 
-Las respuestas HIT recuperan los datos temporalmente almacenados en Redis, evitando repetir la consulta correspondiente a MySQL.
+MinIO proporciona almacenamiento de objetos compatible con S3.
 
-### 9.6. Validación Terraform
+La aplicacion consume el archivo prueba.txt desde el bucket
+practica2-static.
 
-```bash
-make validate-dev
-make validate-prod
-make plan-dev
-make plan-prod
-```
-
-Tras desplegar los puntos 1 y 2, ambos entornos devolvieron:
+El objeto se puede consultar desde la propia aplicacion mediante:
 
 ```text
-No changes. Your infrastructure matches the configuration.
+/storage/prueba.txt
 ```
 
-### 9.7. Demostración automatizada
+Inicializacion y comprobacion:
+
+```bash
+make init-minio
+make test-minio
+```
+
+Resultado obtenido:
+
+| Replica | HTTP | Archivo |
+|---|---:|---|
+| DEV Flask 1 | 200 | Identico |
+| DEV Flask 2 | 200 | Identico |
+| PROD Flask 1 | 200 | Identico |
+| PROD Flask 2 | 200 | Identico |
+| PROD Flask 3 | 200 | Identico |
+
+Las cinco replicas obtuvieron el mismo contenido,
+verificado mediante SHA256.
+
+## 12. Monitorizacion
+
+cAdvisor recopila metricas de los contenedores Docker.
+
+Prometheus almacena las metricas y Grafana permite consultarlas
+mediante dashboards.
+
+Se dispone de visualizaciones de:
+
+- Utilizacion de CPU.
+- Consumo de memoria RAM.
+- Estado de los contenedores.
+- Monitorizacion conjunta de DEV y PROD.
+
+```bash
+make test-monitoring
+```
+
+Resultados obtenidos:
+
+- Siete servicios de monitorizacion y almacenamiento accesibles.
+- Dos targets de Prometheus activos.
+- Metricas de CPU, memoria y ultima deteccion disponibles.
+
+## 13. Alertas
+
+Grafana dispone de cinco reglas de alertas:
+
+| Alerta | Condicion |
+|---|---|
+| Flask DEV | Menos de dos replicas detectadas |
+| Flask PROD | Menos de tres replicas detectadas |
+| Nginx PROD | Ausencia de metricas recientes |
+| MySQL PROD | Ausencia de metricas recientes |
+| Redis PROD | Ausencia de metricas recientes |
+
+Las alertas utilizan la ultima deteccion de los contenedores.
+No sustituyen una comprobacion completa de salud de la aplicacion.
+
+Las notificaciones se envian mediante SMTP a Mailpit,
+sin utilizar cuentas de correo personales.
+
+Las alertas de replicas Flask DEV y PROD se han probado
+mediante caidas controladas.
+
+### Pruebas disponibles
+
+```bash
+make alert-flask-dev
+make alert-flask-prod
+make alert-nginx
+make alert-mysql
+make alert-redis
+```
+
+Los scripts detienen temporalmente el servicio seleccionado
+y posteriormente lo recuperan.
+
+Realizar las pruebas individualmente.
+
+## 14. Centralizacion de registros
+
+Grafana Alloy recoge los registros de los contenedores Docker
+y los envia a Loki.
+
+Grafana Explore permite consultar los registros mediante LogQL.
+
+Consulta general:
+
+```logql
+{container=~"practica2-(dev|prod)-.*"}
+```
+
+Consulta del balanceador PROD:
+
+```logql
+{container="practica2-prod-nginx"}
+```
+
+Prueba automatica:
+
+```bash
+make test-logs
+```
+
+Resultado obtenido:
+
+| Entorno | Peticiones | Registros recuperados |
+|---|---:|---:|
+| DEV | 5 | 5 |
+| PROD | 5 | 5 |
+
+Cada prueba genera un identificador unico para comprobar
+que los registros consultados corresponden al trafico generado.
+
+## 15. Comandos principales
+
+| Comando | Funcionalidad |
+|---|---|
+| make help | Mostrar ayuda |
+| make deploy-full | Desplegar infraestructura |
+| make validate-all | Validar DEV y PROD |
+| make validate-monitoring | Validar monitorizacion |
+| make check-full | Comprobar servicios principales |
+| make status | Mostrar contenedores |
+| make balance-dev | Comprobar balanceo DEV |
+| make balance-prod | Comprobar balanceo PROD |
+| make test-cache | Comprobar Redis |
+| make test-persistencia | Comprobar MySQL |
+| make test-minio | Comprobar almacenamiento |
+| make test-monitoring | Comprobar metricas |
+| make test-logs | Comprobar registros |
+| make export-grafana | Exportar configuracion |
+| make restore-grafana | Restaurar configuracion |
+| make demo | Demostracion interactiva |
+
+## 16. Demostracion
 
 ```bash
 make demo
 ```
 
-Este comando comprueba el estado de los servicios y realiza las pruebas de balanceo sin detener contenedores.
+La demostracion consta de 16 apartados interactivos:
 
-## 10. Seguridad
+1. Arquitectura.
+2. Infraestructura como codigo.
+3. Contenedores desplegados.
+4. Funcionamiento simultaneo DEV y PROD.
+5. Balanceo DEV.
+6. Balanceo PROD.
+7. Cache Redis.
+8. Persistencia MySQL.
+9. Almacenamiento MinIO.
+10. Monitorizacion.
+11. CPU.
+12. Memoria RAM.
+13. Estado de los contenedores.
+14. Registros centralizados.
+15. Alta disponibilidad y alertas.
+16. Recuperacion y comprobacion final.
 
-- MySQL y Redis funcionan dentro de redes Docker internas.
-- Flask no publica puertos individuales al host.
-- Solo Nginx publica los puertos HTTP de DEV y PROD.
-- Las credenciales de MySQL se generan mediante el proveedor Random de Terraform.
-- Las contraseñas se transmiten a los contenedores mediante variables de entorno.
-- `.gitignore` excluye estados Terraform, archivos de variables locales y secretos.
-- Los volúmenes MySQL utilizan protección contra eliminación accidental.
+La demostracion incluye reinicios y paradas controladas.
+Debe realizarse en el entorno de practicas.
 
-**Advertencia:** los estados locales de Terraform pueden contener valores sensibles. No deben publicarse.
+## 17. Seguridad y limitaciones
 
-## 11. Automatización
+- Los archivos de estado Terraform se excluyen del repositorio.
+- Los archivos tfvars versionados contienen configuracion publica.
+- Las credenciales de Grafana se solicitan interactivamente.
+- MinIO utiliza una contrasena generada por Terraform.
+- Las notificaciones utilizan un servidor SMTP local.
+- Los entornos disponen de redes Docker independientes.
+- MinIO es un servicio compartido entre ambos entornos.
 
-El Makefile permite inicializar, validar, planificar, desplegar y comprobar ambos entornos.
+La alta disponibilidad se aplica a las replicas Flask.
+Nginx, MySQL, Redis y MinIO no disponen de replicacion
+de alta disponibilidad en esta implementacion.
 
-Para consultar los comandos disponibles:
+La infraestructura esta orientada a un entorno academico,
+no a un despliegue de produccion real.
 
-```bash
-make help
-```
+## 18. Control de versiones
 
-Los objetivos `down-dev` y `down-prod` invocan Terraform Destroy, pero los volúmenes MySQL tienen `prevent_destroy`. Por tanto, no debe utilizarse la destrucción completa sin planificar antes cómo preservar los datos.
+El desarrollo se ha realizado mediante commits incrementales
+organizados por funcionalidades.
 
-## 12. Estado del proyecto
+El repositorio conserva la evolucion de la infraestructura,
+la aplicacion, la monitorizacion, el almacenamiento
+y las pruebas automaticas.
 
-### Implementado y comprobado
+## 19. Uso de inteligencia artificial
 
-- [x] Terraform con Docker.
-- [x] Redes separadas DEV y PROD.
-- [x] Aplicación Flask replicada.
-- [x] MySQL con persistencia.
-- [x] Caché Redis.
-- [x] Healthchecks y endpoint `/status`.
-- [x] Nginx con Round Robin.
-- [x] Prueba de reparto de peticiones.
-- [x] Tolerancia a la caída de una réplica PROD.
-- [x] Puertos individuales Flask no publicados.
-- [x] Makefile con pruebas automatizadas.
+Se ha utilizado ChatGPT como herramienta de apoyo para el
+desarrollo, la resolucion de errores, la configuracion
+de infraestructura, la automatizacion y la documentacion.
 
-### Pendiente
+Las configuraciones y pruebas se han ejecutado en Ubuntu
+para verificar su funcionamiento.
 
-- [ ] Monitorización de contenedores, CPU y memoria.
-- [ ] Centralización y consulta de logs.
-- [ ] Alertas activables en PROD.
-- [ ] Almacenamiento de archivos compartido.
-- [ ] Pruebas finales integradas.
-- [ ] Preparación del ZIP y documentación final.
-
-## 13. Uso de inteligencia artificial
-
-Durante el desarrollo se ha utilizado ChatGPT (OpenAI, GPT-6) como herramienta de apoyo para:
-
-- Analizar y desglosar los requisitos de las prácticas.
-- Proponer y revisar configuraciones Terraform y Docker.
-- Estructurar módulos reutilizables.
-- Preparar comandos de comprobación y pruebas.
-- Identificar y corregir errores encontrados durante el despliegue.
-- Mejorar la documentación técnica.
-
-Las configuraciones se han ejecutado y verificado en el entorno de prácticas. Esta declaración deberá revisarse y completarse antes de la entrega final.
-
-## 14. Documentación de referencia
-
-- Enunciado de la Práctica 1.
-- Enunciado de la Práctica 2 - Infrastructure as Code.
-- Documentación oficial de Terraform.
-- Documentación del proveedor Docker para Terraform.
-- Documentación oficial de Docker, Nginx, MySQL y Redis.
-- Material de la asignatura Redes Avanzadas.
-
-## 15. Entrega
-
-El proyecto se aloja en un repositorio público de GitHub con commits progresivos.
-
-La entrega final incluye el código, el README actualizado y un archivo comprimido para el campus digital.
-
-**Fecha de entrega: 29 de noviembre de 2026.**
