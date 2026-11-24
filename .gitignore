@@ -70,3 +70,6 @@ __pycache__/
 
 # Archivos de entrega
 *.zip
+
+# Copias temporales
+*.save
