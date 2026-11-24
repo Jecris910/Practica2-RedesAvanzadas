@@ -1,0 +1,12 @@
+[
+  {
+    "uid": "ag56x0m4zzz7ke",
+    "name": "Practica2 AVisos",
+    "type": "email",
+    "settings": {
+      "addresses": "profesor@practica2.local",
+      "singleEmail": true
+    },
+    "disableResolveMessage": false
+  }
+]
