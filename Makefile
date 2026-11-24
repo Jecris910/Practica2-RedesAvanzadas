@@ -428,3 +428,19 @@ alert-mysql:
 
 alert-redis:
 	bash scripts/demo-alertas.sh redis
+
+.PHONY: test-cache
+test-cache:
+	bash scripts/test-cache.sh
+
+.PHONY: test-persistencia
+test-persistencia:
+	bash scripts/test-persistencia.sh
+
+.PHONY: test-minio
+test-minio:
+	bash scripts/test-minio.sh
+
+.PHONY: test-monitoring
+test-monitoring:
+	bash scripts/test-monitoring.sh
