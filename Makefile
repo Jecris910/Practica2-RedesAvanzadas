@@ -393,3 +393,38 @@ check-full:
 	$(MAKE) check
 	$(MAKE) check-minio
 	$(MAKE) nginx-test
+
+# ============================================================
+# 15. CONFIGURACION REPRODUCIBLE DE GRAFANA
+# ============================================================
+
+.PHONY: export-grafana restore-grafana
+
+export-grafana:
+	python3 scripts/export-grafana.py
+
+restore-grafana:
+	python3 scripts/restore-grafana.py --policies
+
+
+# ============================================================
+# 16. PRUEBAS CONTROLADAS DE ALERTAS
+# ============================================================
+
+.PHONY: alert-flask-dev alert-flask-prod
+.PHONY: alert-nginx alert-mysql alert-redis
+
+alert-flask-dev:
+	bash scripts/demo-alertas.sh flask-dev
+
+alert-flask-prod:
+	bash scripts/demo-alertas.sh flask-prod
+
+alert-nginx:
+	bash scripts/demo-alertas.sh nginx
+
+alert-mysql:
+	bash scripts/demo-alertas.sh mysql
+
+alert-redis:
+	bash scripts/demo-alertas.sh redis
