@@ -1267,3 +1267,29 @@ recoge sus logs y los envia a Loki.
 Grafana permite consultar estos registros utilizando LogQL,
 incluidos los logs de los balanceadores Nginx de DEV y PROD.
 
+
+
+## Comandos adicionales de comprobación
+
+| Comando | Función |
+|---|---|
+| `make help` | Ayuda de comandos |
+| `make urls` | Direcciones de los servicios |
+| `make health` | Estado Docker y healthchecks disponibles |
+| `make healthy` | Contenedores saludables |
+| `make unhealthy` | Contenedores no saludables |
+| `make events` | Eventos recientes de Docker |
+| `make mailpit` | Disponibilidad HTTP de Mailpit |
+| `make demo` | Demostración funcional interactiva |
+
+Los contenedores sin healthcheck se identifican por separado.
+
+La prueba de persistencia inserta un jugador temporal,
+recrea MySQL conservando su volumen, verifica el jugador
+y lo elimina posteriormente.
+
+La recepción de correo se verifica mediante las pruebas
+de alertas.
+
+La alta disponibilidad se limita a las réplicas Flask.
+

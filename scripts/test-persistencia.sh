@@ -17,6 +17,14 @@ cleanup() {
 
 trap cleanup EXIT
 
+
+pausa_demo() {
+    if [[ "${DEMO_INTERACTIVA:-0}" == "1" ]]; then
+        echo
+        read -r -p "$1" dummy
+    fi
+}
+
 # Ejecutar SQL sin mostrar las credenciales.
 sql() {
 
@@ -193,6 +201,7 @@ SQL
     echo "Jugador: $marker"
     echo "Hash antes: $hash_antes"
     echo "[OK] Jugador insertado y visible en Flask."
+    pausa_demo "Mostrar jugador insertado y pulsar ENTER..."
 
     # Recrear exclusivamente el contenedor.
     echo
@@ -252,6 +261,7 @@ SQL
 
     echo "[OK] Los datos permanecen."
     echo "[OK] El jugador de prueba sigue disponible."
+    pausa_demo "Mostrar jugador conservado y pulsar ENTER..."
 
     # Eliminar exclusivamente el jugador temporal.
     echo
@@ -270,6 +280,7 @@ SQL
     echo "Hash final:    $final"
 
     echo "[OK] Datos originales recuperados."
+    pausa_demo "Mostrar jugador eliminado y pulsar ENTER..."
     echo "[OK] Persistencia ${env^^} comprobada."
 
 done

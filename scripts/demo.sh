@@ -61,9 +61,24 @@ echo "============================================================"
 # 1. ESTADO INICIAL
 # ============================================================
 
+
+esperar_salud() {
+    for intento in $(seq 1 30); do
+        if make --no-print-directory health >/dev/null 2>&1; then
+            make --no-print-directory health
+            return 0
+        fi
+
+        echo "Esperando recuperacion ($intento/30)..."
+        sleep 2
+    done
+
+    make --no-print-directory health
+    return 1
+}
+
 paso 1 "CONTENEDORES DESPLEGADOS"
 
-ejecutar status
 ejecutar health
 
 cantidad=$(docker ps \
@@ -80,8 +95,6 @@ test "$cantidad" -eq 18
 # ============================================================
 
 paso 2 "FUNCIONAMIENTO SIMULTANEO DEV Y PROD"
-
-ejecutar check
 
 python3 - <<'PY'
 import json
@@ -201,7 +214,7 @@ echo "5. Eliminar el jugador temporal."
 echo "6. Comprobar los datos originales."
 echo
 
-ejecutar test-persistencia
+DEMO_INTERACTIVA=1 ejecutar test-persistencia
 
 # ============================================================
 # 7. CACHE
@@ -226,9 +239,6 @@ echo "Mostrar el indicador de cache en la aplicacion."
 paso 8 "ALMACENAMIENTO COMPARTIDO MINIO"
 
 ejecutar test-minio
-
-echo
-ejecutar check-minio
 
 echo
 echo "Mostrar el archivo compartido en DEV y PROD."
@@ -402,8 +412,7 @@ ejecutar balance-prod
 
 ejecutar test-monitoring
 
-ejecutar status
-ejecutar health
+esperar_salud
 
 cantidad=$(docker ps \
     --filter "name=practica2-" \

@@ -122,22 +122,7 @@ help:
 	@echo "  make alert-mysql           Caida MySQL PROD"
 	@echo "  make alert-redis           Caida Redis PROD"
 	@echo ""
-	@echo "SERVICIOS:"
-	@echo "  cAdvisor:    http://localhost:8300"
-	@echo "  Prometheus:  http://localhost:8400"
-	@echo "  Targets:     http://localhost:8400/targets"
-	@echo "  Grafana:     http://localhost:8500"
-	@echo "  Dashboards:  http://localhost:8500/dashboards"
-	@echo "  Alertas:     http://localhost:8500/alerting/list"
-	@echo "  Explore:     http://localhost:8500/explore"
-	@echo "  Mailpit:     http://localhost:8025"
-	@echo "  Loki:        http://localhost:8600"
-	@echo "  Alloy:       http://localhost:8700"
-	@echo "  MinIO:       http://localhost:8801"
-	@echo "  MinIO API:   http://localhost:8800"
-	@echo ""
-	@echo "WEB DEV:  $(DEV_URL)"
-	@echo "WEB PROD: $(PROD_URL)"
+	@$(MAKE) --no-print-directory urls
 	@echo "=================================================="
 
 # ============================================================
@@ -521,10 +506,10 @@ unhealthy:
 
 events:
 	@echo "===== EVENTOS DOCKER DE LOS ULTIMOS 10 MINUTOS ====="
-	@docker events --since 10m --until 0s \
+	@set -o pipefail; docker events --since 10m --until 0s \
 		--filter type=container \
 		--format '{{.Time}} {{.Action}} {{.Actor.Attributes.name}}' \
-		| grep 'practica2-' || true
+		| awk '/practica2-/'
 
 mailpit:
 	@echo "===== COMPROBANDO MAILPIT ====="
