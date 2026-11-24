@@ -444,3 +444,9 @@ test-minio:
 .PHONY: test-monitoring
 test-monitoring:
 	bash scripts/test-monitoring.sh
+
+# Prueba de registros centralizados.
+.PHONY: test-logs
+
+test-logs:
+	bash scripts/test-logs.sh
