@@ -73,3 +73,7 @@ __pycache__/
 
 # Copias temporales
 *.save
+
+# Configuracion publica de los entornos Terraform.
+!/environments/dev/terraform.tfvars
+!/environments/prod/terraform.tfvars
