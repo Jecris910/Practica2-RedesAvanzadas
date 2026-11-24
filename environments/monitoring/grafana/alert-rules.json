@@ -1,0 +1,423 @@
+[
+  {
+    "uid": "cg576yxcf2n0ge",
+    "orgID": 1,
+    "folderUID": "fgl6r8",
+    "ruleGroup": "desarollo",
+    "title": "ALERTA - Caida de replicas Flask DEV",
+    "condition": "C",
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        },
+        "datasourceUid": "ag55xhpzw9urka",
+        "model": {
+          "editorMode": "code",
+          "expr": "count(container_last_seen{name=~\"practica2-dev-flask-[12]\"} > (time() - 45)) or vector(0)",
+          "instant": true,
+          "intervalMs": 1000,
+          "legendFormat": "__auto",
+          "maxDataPoints": 43200,
+          "range": false,
+          "refId": "A"
+        }
+      },
+      {
+        "refId": "C",
+        "queryType": "expression",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  2
+                ],
+                "type": "lt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "params": [
+                  "C"
+                ]
+              },
+              "reducer": {
+                "params": [],
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ],
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "expression": "A",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        }
+      }
+    ],
+    "noDataState": "NoData",
+    "execErrState": "Error",
+    "annotations": {
+      "description": "Grafana ha detectado menos de 2 replicas Flask en DEV.\nComprobar los contenedores practica2-dev-flask-1 y practica2-dev-flask-2.",
+      "summary": "ALERTA DEV: Se ha detectado la caida de una o mas replicas Flask"
+    },
+    "isPaused": false,
+    "notification_settings": {
+      "receiver": "Practica2 AVisos"
+    },
+    "record": null,
+    "for": "0s",
+    "keep_firing_for": "0s"
+  },
+  {
+    "uid": "dg562pwejqz9ca",
+    "orgID": 1,
+    "folderUID": "fgl6r8",
+    "ruleGroup": "produccion",
+    "title": "ALERTA - Caida de replicas Flask PROD",
+    "condition": "C",
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        },
+        "datasourceUid": "ag55xhpzw9urka",
+        "model": {
+          "editorMode": "code",
+          "expr": "count(\n  container_last_seen{name=~\"practica2-prod-flask-[123]\"}\n  > (time() - 45)\n) or vector(0)",
+          "instant": true,
+          "intervalMs": 1000,
+          "legendFormat": "__auto",
+          "maxDataPoints": 43200,
+          "range": false,
+          "refId": "A"
+        }
+      },
+      {
+        "refId": "C",
+        "queryType": "expression",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  3
+                ],
+                "type": "lt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "params": [
+                  "C"
+                ]
+              },
+              "reducer": {
+                "params": [],
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ],
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "expression": "A",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        }
+      }
+    ],
+    "noDataState": "NoData",
+    "execErrState": "Error",
+    "isPaused": false,
+    "notification_settings": {
+      "receiver": "empty"
+    },
+    "record": null,
+    "for": "0s",
+    "keep_firing_for": "0s"
+  },
+  {
+    "uid": "bg57738tzj9xca",
+    "orgID": 1,
+    "folderUID": "fgl6r8",
+    "ruleGroup": "produccion",
+    "title": "ALERTA - Caida de Nginx PROD",
+    "condition": "C",
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        },
+        "datasourceUid": "ag55xhpzw9urka",
+        "model": {
+          "editorMode": "code",
+          "expr": "count(container_last_seen{name=\"practica2-prod-nginx\"} > (time() - 45)) or vector(0)",
+          "instant": true,
+          "intervalMs": 1000,
+          "legendFormat": "__auto",
+          "maxDataPoints": 43200,
+          "range": false,
+          "refId": "A"
+        }
+      },
+      {
+        "refId": "C",
+        "queryType": "expression",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  1
+                ],
+                "type": "lt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "params": [
+                  "C"
+                ]
+              },
+              "reducer": {
+                "params": [],
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ],
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "expression": "A",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        }
+      }
+    ],
+    "noDataState": "NoData",
+    "execErrState": "Error",
+    "annotations": {
+      "description": "El contenedor practica2-prod-nginx ha dejado de detectarse.\nEl acceso a la aplicacion web de produccion puede estar interrumpido.",
+      "summary": "CRITICO: Nginx de produccion no esta disponible."
+    },
+    "isPaused": false,
+    "notification_settings": {
+      "receiver": "Practica2 AVisos"
+    },
+    "record": null,
+    "for": "0s",
+    "keep_firing_for": "0s"
+  },
+  {
+    "uid": "eg5775z6s3r40e",
+    "orgID": 1,
+    "folderUID": "fgl6r8",
+    "ruleGroup": "produccion",
+    "title": "ALERTA - Caida de MySQL PROD",
+    "condition": "C",
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        },
+        "datasourceUid": "ag55xhpzw9urka",
+        "model": {
+          "editorMode": "code",
+          "expr": "count(container_last_seen{name=\"practica2-prod-mysql\"} > (time() - 45)) or vector(0)",
+          "instant": true,
+          "intervalMs": 1000,
+          "legendFormat": "__auto",
+          "maxDataPoints": 43200,
+          "range": false,
+          "refId": "A"
+        }
+      },
+      {
+        "refId": "C",
+        "queryType": "expression",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  1
+                ],
+                "type": "lt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "params": [
+                  "C"
+                ]
+              },
+              "reducer": {
+                "params": [],
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ],
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "expression": "A",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        }
+      }
+    ],
+    "noDataState": "NoData",
+    "execErrState": "Error",
+    "annotations": {
+      "description": "No se detecta el contenedor practica2-prod-mysql.\nLas operaciones que necesitan la base de datos pueden fallar.",
+      "summary": "CRITICO: MySQL de produccion no esta disponible."
+    },
+    "isPaused": false,
+    "notification_settings": {
+      "receiver": "Practica2 AVisos"
+    },
+    "record": null,
+    "for": "0s",
+    "keep_firing_for": "0s"
+  },
+  {
+    "uid": "bg5778ur2juo0f",
+    "orgID": 1,
+    "folderUID": "fgl6r8",
+    "ruleGroup": "produccion",
+    "title": "ALERTA - Caida de Redis PROD",
+    "condition": "C",
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 600,
+          "to": 0
+        },
+        "datasourceUid": "ag55xhpzw9urka",
+        "model": {
+          "editorMode": "code",
+          "expr": "count(container_last_seen{name=\"practica2-prod-redis\"} > (time() - 45)) or vector(0)",
+          "instant": true,
+          "intervalMs": 1000,
+          "legendFormat": "__auto",
+          "maxDataPoints": 43200,
+          "range": false,
+          "refId": "A"
+        }
+      },
+      {
+        "refId": "C",
+        "queryType": "expression",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  1
+                ],
+                "type": "lt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "params": [
+                  "C"
+                ]
+              },
+              "reducer": {
+                "params": [],
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ],
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "expression": "A",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        }
+      }
+    ],
+    "noDataState": "NoData",
+    "execErrState": "Error",
+    "annotations": {
+      "description": "El contenedor practica2-prod-redis ha dejado de detectarse.\nEl servicio de cache puede estar interrumpido.",
+      "summary": "AVISO: Redis de produccion no esta disponible."
+    },
+    "isPaused": false,
+    "notification_settings": {
+      "receiver": "Practica2 AVisos"
+    },
+    "record": null,
+    "for": "0s",
+    "keep_firing_for": "0s"
+  }
+]
