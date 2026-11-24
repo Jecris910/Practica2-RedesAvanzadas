@@ -7,9 +7,20 @@ check_http() {
 
     printf '%-15s ' "$1"
 
-    curl -fsS --max-time 10 "$2" >/dev/null
+    # Esperar a que el servicio complete su arranque.
+    for attempt in $(seq 1 30); do
 
-    echo "[OK]"
+        if curl -fsS --max-time 5 "$2" >/dev/null 2>&1; then
+            echo "[OK]"
+            return 0
+        fi
+
+        sleep 2
+
+    done
+
+    echo "[ERROR] Servicio no disponible"
+    return 1
 }
 
 echo "=========================================="
