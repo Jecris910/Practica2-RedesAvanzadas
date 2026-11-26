@@ -79,11 +79,56 @@ echo "Comprueba la alerta Firing en Grafana."
 echo "Comprueba la notificacion en Mailpit."
 
 case "$1" in
-    flask-dev)
-        make balance-dev
-        ;;
-    flask-prod)
-        make balance-prod
+    flask-dev|flask-prod)
+        echo
+        echo "===== ALTA DISPONIBILIDAD WEB ====="
+
+        python3 - "$1" "$port" <<'PY_HA'
+import json
+import sys
+import urllib.request
+from collections import Counter
+
+mode = sys.argv[1]
+port = sys.argv[2]
+
+expected = (
+    {"dev-flask-1"}
+    if mode == "flask-dev"
+    else {"prod-flask-1", "prod-flask-3"}
+)
+
+counts = Counter()
+
+for i in range(12):
+
+    with urllib.request.urlopen(
+        f"http://127.0.0.1:{port}/status",
+        timeout=10
+    ) as response:
+
+        assert response.status == 200
+
+        data = json.load(response)
+
+    assert all(
+        data.get(key) == "connected"
+        for key in ("web", "database", "cache")
+    ), data
+
+    instance = data["instance"]
+
+    assert instance in expected, data
+
+    counts[instance] += 1
+
+    print(f"Peticion {i+1:02}: HTTP 200 - {instance}")
+
+assert set(counts) == expected, counts
+
+print("Distribucion:", dict(counts))
+print("[OK] Servicio web disponible durante el fallo.")
+PY_HA
         ;;
 esac
 

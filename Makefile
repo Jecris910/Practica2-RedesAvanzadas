@@ -505,11 +505,12 @@ unhealthy:
 		--format 'table {{.Names}}\t{{.Status}}'
 
 events:
-	@echo "===== EVENTOS DOCKER DE LOS ULTIMOS 10 MINUTOS ====="
+	@echo "===== EVENTOS RELEVANTES DE DOCKER ====="
 	@set -o pipefail; docker events --since 10m --until 0s \
 		--filter type=container \
 		--format '{{.Time}} {{.Action}} {{.Actor.Attributes.name}}' \
-		| awk '/practica2-/'
+		| awk '$$NF ~ /^practica2-/ && $$2 ~ /^(start|stop|die|restart|kill|destroy|create|health_status:)$$/'
+
 
 mailpit:
 	@echo "===== COMPROBANDO MAILPIT ====="

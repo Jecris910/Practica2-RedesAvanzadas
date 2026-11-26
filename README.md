@@ -194,7 +194,6 @@ La configuración específica se establece mediante los archivos `terraform.tfva
 ```text
 Practica2/
 ├── app/
-│   ├── .gitkeep
 │   ├── Dockerfile
 │   ├── app.py
 │   ├── requirements.txt
@@ -276,14 +275,13 @@ Practica2/
 │       └── variables.tf
 │
 ├── scripts/
-│   ├── minio-demo/
-│   │   └── prueba.txt
 │   ├── demo-alertas.sh
 │   ├── demo.sh
 │   ├── export-grafana.py
 │   ├── init-minio.sh
 │   ├── restore-grafana.py
 │   ├── test-cache.sh
+│   ├── test-health.sh
 │   ├── test-logs.sh
 │   ├── test-minio.sh
 │   ├── test-monitoring.sh
@@ -1025,7 +1023,7 @@ Por tanto:
 - MinIO utiliza almacenamiento local compatible con S3.
 - El acceso al socket Docker utilizado por Alloy requiere permisos elevados.
 - La configuración de laboratorio de determinados servicios utiliza permisos que deberían revisarse en producción.
-- La etiqueta `latest` de MinIO puede afectar a la reproducibilidad.
+- La imagen MinIO está fijada mediante un digest para conservar la versión utilizada.
 - La protección `prevent_destroy` no sustituye a una copia de seguridad.
 
 La restauración de Grafana evita duplicar los recursos existentes, pero no constituye una sincronización completa de todas las configuraciones.
@@ -1293,3 +1291,23 @@ de alertas.
 
 La alta disponibilidad se limita a las réplicas Flask.
 
+
+
+## Verificaciones finales de reproducibilidad
+
+- MinIO utiliza el digest de la imagen empleada durante el desarrollo.
+- Grafana conserva los dashboards y reglas mediante un volumen
+  persistente y archivos JSON versionados.
+- Loki se utiliza para consultar registros; las alertas se gestionan
+  desde Grafana.
+- La prueba de alta disponibilidad verifica respuestas HTTP 200,
+  conexiones con MySQL y Redis y uso de las réplicas disponibles
+  mientras una instancia Flask permanece detenida.
+- Los eventos Docker muestran cambios relevantes del ciclo de vida
+  y del estado de salud de los contenedores.
+- Las pruebas finales y sus resultados se documentarán tras
+  ejecutar el simulacro.
+
+La alta disponibilidad corresponde a la capa de aplicación web.
+El balanceador, la máquina virtual y los servicios de datos
+no tienen redundancia integral.

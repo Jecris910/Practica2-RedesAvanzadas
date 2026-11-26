@@ -8,7 +8,7 @@ resource "random_password" "minio_root" {
 }
 
 resource "docker_image" "minio" {
-  name         = "cgr.dev/chainguard/minio:latest"
+  name         = "cgr.dev/chainguard/minio@sha256:bd92a45b821c0d85772c607ed7b49693efe78b3ffffae301b5d1b0981660de22"
   keep_locally = true
 }
 

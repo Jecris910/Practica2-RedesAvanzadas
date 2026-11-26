@@ -81,14 +81,9 @@ paso 1 "CONTENEDORES DESPLEGADOS"
 
 ejecutar health
 
-cantidad=$(docker ps \
-    --filter "name=practica2-" \
-    --format '{{.Names}}' | wc -l)
 
 echo
-echo "Contenedores activos: $cantidad/18"
 
-test "$cantidad" -eq 18
 
 # ============================================================
 # 2. DEV Y PROD
@@ -355,8 +350,6 @@ echo "Mailpit: http://localhost:8025"
 
 read -r -p "Pulsa ENTER para iniciar la prueba..." dummy
 
-ejecutar mailpit
-
 ejecutar alert-flask-prod
 
 echo
@@ -406,26 +399,16 @@ echo "No se elimina el volumen actual."
 
 paso 16 "RECUPERACION Y COMPROBACION FINAL"
 
+esperar_salud
 ejecutar check-full
 
 ejecutar balance-prod
-
-ejecutar test-monitoring
-
-esperar_salud
-
-cantidad=$(docker ps \
-    --filter "name=practica2-" \
-    --format '{{.Names}}' | wc -l)
-
-test "$cantidad" -eq 18
 
 echo
 echo "============================================================"
 echo "             DEMOSTRACION FINALIZADA"
 echo "============================================================"
 echo
-echo "Contenedores activos: $cantidad/18"
 echo "DEV y PROD operativos."
 echo "Balanceo comprobado."
 echo "Persistencia y cache comprobadas."

@@ -6,7 +6,10 @@
     "access": "proxy",
     "url": "http://127.0.0.1:8600",
     "isDefault": false,
-    "editable": true
+    "editable": true,
+    "jsonData": {
+      "manageAlerts": false
+    }
   },
   {
     "name": "prometheus",

@@ -1,49 +1,9 @@
-
-# PRACTICA 2 - ARCHIVOS QUE NO SE SUBEN A GITHUB
-
-# Credenciales y configuraciones privadas.
+# Credenciales y configuracion privada
 .env
 .env.*
-**/.env
-**/.env.*
+!.env.example
 
-# Estado de Terraform y archivos locales.
-**/.terraform/
-*.tfstate
-*.tfstate.*
-*.tfplan
-crash.log
-crash.*.log
-
-# Variables que pueden contener secretos.
-*.tfvars
-*.tfvars.json
-
-# Sobrescrituras locales de Terraform.
-override.tf
-override.tf.json
-*_override.tf
-*_override.tf.json
-
-# Python.
-__pycache__/
-*.pyc
-.venv/
-
-# Archivos temporales.
-*.swp
-*.swo
-*.log
-.DS_Store
-.vscode/
-
-# Archivos comprimidos.
-*.rar
-*.zip
-
-# ==========================================
-# TERRAFORM - Archivos locales y sensibles
-# ==========================================
+# Terraform: estado y archivos locales
 **/.terraform/
 *.tfstate
 *.tfstate.*
@@ -53,30 +13,37 @@ __pycache__/
 crash.log
 crash.*.log
 
-# Configuraciones privadas
-.env
-.env.*
-!.env.example
-*.auto.tfvars
-*.auto.tfvars.json
-*.secret.tfvars
+# Variables privadas
+*.tfvars
+*.tfvars.json
 
-# Archivos temporales
-*.bak
-*.swp
-*.swo
-*.pyc
-__pycache__/
-
-# Archivos de entrega
-*.zip
-
-# Copias temporales
-*.save
-
-# Configuracion publica de los entornos Terraform.
+# Configuracion publica de los entornos
 !/environments/dev/terraform.tfvars
 !/environments/prod/terraform.tfvars
 
-# Configuracion generada por Terraform
+# Sobrescrituras locales
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Archivos generados
 **/generated/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Archivos temporales y editores
+*.bak
+*.save
+*.swp
+*.swo
+*.log
+.DS_Store
+.vscode/
+
+# Archivos de entrega
+*.zip
+*.rar
